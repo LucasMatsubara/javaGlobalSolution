@@ -3,6 +3,7 @@ package br.com.fiap.aegis.service;
 import br.com.fiap.aegis.dto.CoordenadaDTO;
 import br.com.fiap.aegis.dto.DetritoRequestDTO;
 import br.com.fiap.aegis.dto.DetritoResponseDTO;
+import br.com.fiap.aegis.exception.ResourceNotFoundException;
 import br.com.fiap.aegis.model.CoordenadaOrbital;
 import br.com.fiap.aegis.model.DetritoEspacial;
 import br.com.fiap.aegis.repository.DetritoEspacialRepository;
@@ -40,6 +41,12 @@ public class DetritoEspacialService {
         return detritoRepository.findAll().stream()
                 .map(this::mapearParaResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    public DetritoResponseDTO buscarPorId(Long id) {
+        DetritoEspacial detrito = detritoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Detrito espacial não encontrado com o ID: " + id));
+        return mapearParaResponseDTO(detrito);
     }
 
     private DetritoResponseDTO mapearParaResponseDTO(DetritoEspacial detrito) {
