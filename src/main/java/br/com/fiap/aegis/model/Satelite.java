@@ -1,7 +1,6 @@
 package br.com.fiap.aegis.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -10,6 +9,11 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Satelite extends ObjetoOrbital {
-    private String empresaProprietaria;
+
     private String tipoBanda;
+
+    // N:1 (vários satélites pertencem a uma única empresa)
+    @ManyToOne
+    @JoinColumn(name = "empresa_id", nullable = false)
+    private Empresa empresa;
 }
