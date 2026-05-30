@@ -3,6 +3,7 @@ package br.com.fiap.aegis.service;
 import br.com.fiap.aegis.dto.CoordenadaDTO;
 import br.com.fiap.aegis.dto.DroneRequestDTO;
 import br.com.fiap.aegis.dto.DroneResponseDTO;
+import br.com.fiap.aegis.exception.ResourceNotFoundException;
 import br.com.fiap.aegis.model.CoordenadaOrbital;
 import br.com.fiap.aegis.model.DroneLimpeza;
 import br.com.fiap.aegis.repository.DroneLimpezaRepository;
@@ -40,6 +41,12 @@ public class DroneLimpezaService {
         return droneRepository.findAll().stream()
                 .map(this::mapearParaResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    public DroneResponseDTO buscarPorId(Long id) {
+        DroneLimpeza drone = droneRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Drone não encontrado com o ID: " + id));
+        return mapearParaResponseDTO(drone);
     }
 
     private DroneResponseDTO mapearParaResponseDTO(DroneLimpeza drone) {
