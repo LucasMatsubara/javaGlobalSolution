@@ -1,7 +1,7 @@
 package br.com.fiap.aegis.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import br.com.fiap.aegis.enums.RiscoColisao;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -10,6 +10,10 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class DetritoEspacial extends ObjetoOrbital {
-    private String riscoColisao; // enum: ALTO, MEDIO, BAIXO
-    private String origem; // ex1: Resto de Foguete
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private RiscoColisao riscoColisao;
+
+    private String origem;
 }

@@ -26,11 +26,9 @@ public class SateliteService {
     private EmpresaRepository empresaRepository;
 
     public SateliteResponseDTO cadastrarSatelite(SateliteRequestDTO dto) {
-        // 1. Busca a empresa dona do satélite
         Empresa empresa = empresaRepository.findById(dto.empresaId())
                 .orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrada com ID: " + dto.empresaId()));
 
-        // 2. Converte o DTO para Entidade
         Satelite satelite = new Satelite();
         satelite.setNome(dto.nome());
         satelite.setMassaKg(dto.massaKg());
@@ -43,10 +41,7 @@ public class SateliteService {
         coordenadas.setEixoZ(dto.coordenadas().eixoZ());
         satelite.setCoordenadas(coordenadas);
 
-        // 3. Salva no banco
         Satelite sateliteSalvo = sateliteRepository.save(satelite);
-
-        // 4. Retorna como ResponseDTO
         return mapearParaResponseDTO(sateliteSalvo);
     }
 
@@ -56,7 +51,6 @@ public class SateliteService {
                 .collect(Collectors.toList());
     }
 
-    // Método auxiliar para não repetir código de mapeamento
     private SateliteResponseDTO mapearParaResponseDTO(Satelite satelite) {
         CoordenadaDTO coordDTO = new CoordenadaDTO(
                 satelite.getCoordenadas().getEixoX(),

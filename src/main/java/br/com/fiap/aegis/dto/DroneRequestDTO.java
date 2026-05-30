@@ -1,5 +1,6 @@
 package br.com.fiap.aegis.dto;
 
+import br.com.fiap.aegis.enums.StatusOperacional;
 import jakarta.validation.constraints.*;
 import jakarta.validation.Valid;
 
@@ -8,5 +9,5 @@ public record DroneRequestDTO(
         @NotNull @Positive Double massaKg,
         @NotNull @Valid CoordenadaDTO coordenadas,
         @NotNull @PositiveOrZero Double nivelBateria,
-        @NotBlank String statusOperacional
+        @NotNull StatusOperacional statusOperacional
 ) {}

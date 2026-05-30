@@ -1,7 +1,7 @@
 package br.com.fiap.aegis.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import br.com.fiap.aegis.enums.StatusOperacional;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -10,6 +10,10 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class DroneLimpeza extends ObjetoOrbital {
+
     private Double nivelBateria;
-    private String statusOperacional; // enum: EM_BASE, EM_MISSAO, INATIVO
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusOperacional statusOperacional;
 }

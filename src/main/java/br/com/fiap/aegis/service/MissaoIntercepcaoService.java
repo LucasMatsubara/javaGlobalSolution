@@ -2,6 +2,7 @@ package br.com.fiap.aegis.service;
 
 import br.com.fiap.aegis.dto.MissaoRequestDTO;
 import br.com.fiap.aegis.dto.MissaoResponseDTO;
+import br.com.fiap.aegis.enums.StatusOperacional;
 import br.com.fiap.aegis.exception.ResourceNotFoundException;
 import br.com.fiap.aegis.model.DetritoEspacial;
 import br.com.fiap.aegis.model.DroneLimpeza;
@@ -28,35 +29,32 @@ public class MissaoIntercepcaoService {
     private DetritoEspacialRepository detritoRepository;
 
     public MissaoResponseDTO despacharDrone(MissaoRequestDTO dto) {
-        // 1. Valida se o Drone e o Detrito existem
         DroneLimpeza drone = droneRepository.findById(dto.droneId())
                 .orElseThrow(() -> new ResourceNotFoundException("Drone não encontrado com ID: " + dto.droneId()));
 
         DetritoEspacial detrito = detritoRepository.findById(dto.detritoId())
                 .orElseThrow(() -> new ResourceNotFoundException("Detrito não encontrado com ID: " + dto.detritoId()));
 
-        // TODO: Aqui no futuro você pode colocar uma regra do tipo:
-        // Se drone.getStatusOperacional() != "EM_BASE", lançar exceção dizendo que ele não pode ser despachado.
+        // enum ó despacha se estiver na base
+        if (drone.getStatusOperacional() != StatusOperacional.EM_BASE) {
+            throw new IllegalStateException("O Drone não pode ser despachado. Status atual: " + drone.getStatusOperacional());
+        }
 
-        // monta chave composta
         MissaoId missaoId = new MissaoId(drone.getId(), detrito.getId());
 
-        // monta entidade associativa
         MissaoIntercepcao missao = new MissaoIntercepcao();
         missao.setId(missaoId);
         missao.setDrone(drone);
         missao.setDetrito(detrito);
-        missao.setStatusMissao(dto.statusMissao());
-        missao.setDataMissao(LocalDateTime.now()); // Registra o momento exato do despacho
+        missao.setStatusMissao(dto.statusMissao()); // Setando o Enum
+        missao.setDataMissao(LocalDateTime.now());
 
-        // atualiza o status do Drone para refletir a missão
-        drone.setStatusOperacional("EM_MISSAO");
+        // Atualiza o enum do Drone para refletir a missão
+        drone.setStatusOperacional(StatusOperacional.EM_MISSAO);
         droneRepository.save(drone);
 
-        // salva a missão
         MissaoIntercepcao missaoSalva = missaoRepository.save(missao);
 
-        // retorna o DTO
         return new MissaoResponseDTO(
                 missaoSalva.getDrone().getId(),
                 missaoSalva.getDetrito().getId(),

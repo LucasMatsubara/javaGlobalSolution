@@ -1,5 +1,6 @@
 package br.com.fiap.aegis.model;
 
+import br.com.fiap.aegis.enums.TipoBanda;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,7 +11,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class Satelite extends ObjetoOrbital {
 
-    private String tipoBanda;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoBanda tipoBanda;
 
     // N:1 (vários satélites pertencem a uma única empresa)
     @ManyToOne

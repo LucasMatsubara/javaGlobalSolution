@@ -1,5 +1,7 @@
 package br.com.fiap.aegis.dto;
 
+import br.com.fiap.aegis.enums.StatusMissao;
+
 import java.time.LocalDateTime;
 
 public record MissaoResponseDTO(
@@ -8,5 +10,5 @@ public record MissaoResponseDTO(
         String nomeDrone,
         String nomeDetrito,
         LocalDateTime dataMissao,
-        String statusMissao
+        StatusMissao statusMissao
 ) {}

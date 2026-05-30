@@ -1,5 +1,6 @@
 package br.com.fiap.aegis.model;
 
+import br.com.fiap.aegis.enums.StatusMissao;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -23,5 +24,8 @@ public class MissaoIntercepcao {
     private DetritoEspacial detrito;
 
     private LocalDateTime dataMissao;
-    private String statusMissao; // enum: DESPACHADO, EM_APROXIMACAO, CAPTURADO
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusMissao statusMissao;
 }
