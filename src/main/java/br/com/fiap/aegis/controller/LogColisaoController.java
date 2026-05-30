@@ -2,6 +2,7 @@ package br.com.fiap.aegis.controller;
 
 import br.com.fiap.aegis.dto.LogColisaoResponseDTO;
 import br.com.fiap.aegis.service.LogColisaoService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/logs-colisao")
+@Tag(name = "Logs de Colisão (Alertas)", description = "Endpoints de auditoria para visualização de aproximações perigosas e rotas críticas detetadas")
 public class LogColisaoController {
 
     @Autowired

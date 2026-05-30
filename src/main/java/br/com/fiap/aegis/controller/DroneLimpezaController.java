@@ -3,6 +3,7 @@ package br.com.fiap.aegis.controller;
 import br.com.fiap.aegis.dto.DroneRequestDTO;
 import br.com.fiap.aegis.dto.DroneResponseDTO;
 import br.com.fiap.aegis.service.DroneLimpezaService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/drones")
+@Tag(name = "Drones de Limpeza (Chasers)", description = "Endpoints para gestão da frota de veículos autônomos interceptadores")
 public class DroneLimpezaController {
 
     @Autowired

@@ -3,6 +3,7 @@ package br.com.fiap.aegis.controller;
 import br.com.fiap.aegis.dto.SateliteRequestDTO;
 import br.com.fiap.aegis.dto.SateliteResponseDTO;
 import br.com.fiap.aegis.service.SateliteService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/satelites")
+@Tag(name = "Satélites Comerciais", description = "Endpoints para cadastro e monitorização de satélites ativos em órbita que necessitam de proteção")
 public class SateliteController {
 
     @Autowired

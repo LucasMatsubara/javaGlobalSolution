@@ -3,6 +3,7 @@ package br.com.fiap.aegis.controller;
 import br.com.fiap.aegis.dto.EmpresaRequestDTO;
 import br.com.fiap.aegis.dto.EmpresaResponseDTO;
 import br.com.fiap.aegis.service.EmpresaService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/empresas")
+@Tag(name = "Empresas Aeroespaciais", description = "Endpoints para gestão das empresas proprietárias dos satélites")
 public class EmpresaController {
 
     @Autowired
