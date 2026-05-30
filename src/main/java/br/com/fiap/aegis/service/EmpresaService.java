@@ -2,6 +2,7 @@ package br.com.fiap.aegis.service;
 
 import br.com.fiap.aegis.dto.EmpresaRequestDTO;
 import br.com.fiap.aegis.dto.EmpresaResponseDTO;
+import br.com.fiap.aegis.exception.ResourceNotFoundException;
 import br.com.fiap.aegis.model.Empresa;
 import br.com.fiap.aegis.repository.EmpresaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,12 @@ public class EmpresaService {
         return empresaRepository.findAll().stream()
                 .map(this::mapearParaResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    public EmpresaResponseDTO buscarPorId(Long id) {
+        Empresa empresa = empresaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrada com o ID: " + id));
+        return mapearParaResponseDTO(empresa);
     }
 
     private EmpresaResponseDTO mapearParaResponseDTO(Empresa empresa) {

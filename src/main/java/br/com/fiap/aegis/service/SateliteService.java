@@ -51,6 +51,12 @@ public class SateliteService {
                 .collect(Collectors.toList());
     }
 
+    public SateliteResponseDTO buscarPorId(Long id) {
+        Satelite satelite = sateliteRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Satélite não encontrado com o ID: " + id));
+        return mapearParaResponseDTO(satelite);
+    }
+
     private SateliteResponseDTO mapearParaResponseDTO(Satelite satelite) {
         CoordenadaDTO coordDTO = new CoordenadaDTO(
                 satelite.getCoordenadas().getEixoX(),
