@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class MissaoIntercepcaoService {
@@ -35,7 +37,6 @@ public class MissaoIntercepcaoService {
         DetritoEspacial detrito = detritoRepository.findById(dto.detritoId())
                 .orElseThrow(() -> new ResourceNotFoundException("Detrito não encontrado com ID: " + dto.detritoId()));
 
-        // enum ó despacha se estiver na base
         if (drone.getStatusOperacional() != StatusOperacional.EM_BASE) {
             throw new IllegalStateException("O Drone não pode ser despachado. Status atual: " + drone.getStatusOperacional());
         }
@@ -46,22 +47,39 @@ public class MissaoIntercepcaoService {
         missao.setId(missaoId);
         missao.setDrone(drone);
         missao.setDetrito(detrito);
-        missao.setStatusMissao(dto.statusMissao()); // Setando o Enum
+        missao.setStatusMissao(dto.statusMissao());
         missao.setDataMissao(LocalDateTime.now());
 
-        // Atualiza o enum do Drone para refletir a missão
         drone.setStatusOperacional(StatusOperacional.EM_MISSAO);
         droneRepository.save(drone);
 
         MissaoIntercepcao missaoSalva = missaoRepository.save(missao);
 
+        return mapearParaResponseDTO(missaoSalva);
+    }
+
+    public List<MissaoResponseDTO> listarTodas() {
+        return missaoRepository.findAll().stream()
+                .map(this::mapearParaResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public MissaoResponseDTO buscarPorIdComposto(Long droneId, Long detritoId) {
+        MissaoId id = new MissaoId(droneId, detritoId);
+        MissaoIntercepcao missao = missaoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Missão não encontrada para o Drone ID: " + droneId + " e Detrito ID: " + detritoId));
+        return mapearParaResponseDTO(missao);
+    }
+
+    private MissaoResponseDTO mapearParaResponseDTO(MissaoIntercepcao missao) {
         return new MissaoResponseDTO(
-                missaoSalva.getDrone().getId(),
-                missaoSalva.getDetrito().getId(),
-                missaoSalva.getDrone().getNome(),
-                missaoSalva.getDetrito().getNome(),
-                missaoSalva.getDataMissao(),
-                missaoSalva.getStatusMissao()
+                missao.getDrone().getId(),
+                missao.getDetrito().getId(),
+                missao.getDrone().getNome(),
+                missao.getDetrito().getNome(),
+                missao.getDataMissao(),
+                missao.getStatusMissao()
         );
     }
 }

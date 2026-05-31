@@ -1,6 +1,7 @@
 package br.com.fiap.aegis.service;
 
 import br.com.fiap.aegis.dto.LogColisaoResponseDTO;
+import br.com.fiap.aegis.exception.ResourceNotFoundException;
 import br.com.fiap.aegis.model.DetritoEspacial;
 import br.com.fiap.aegis.model.LogColisao;
 import br.com.fiap.aegis.model.Satelite;
@@ -18,7 +19,6 @@ public class LogColisaoService {
     @Autowired
     private LogColisaoRepository logColisaoRepository;
 
-    // método interno usado pelo sistema (ex: rotinas automatizadas)
     public LogColisaoResponseDTO registrarAlerta(Satelite satelite, DetritoEspacial detrito, String descricao) {
         LogColisao log = new LogColisao();
         log.setSatelite(satelite);
@@ -36,6 +36,12 @@ public class LogColisaoService {
         return logColisaoRepository.findAll().stream()
                 .map(this::mapearParaResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    public LogColisaoResponseDTO buscarPorId(Long id) {
+        LogColisao log = logColisaoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Log de colisão não encontrado com o ID: " + id));
+        return mapearParaResponseDTO(log);
     }
 
     private LogColisaoResponseDTO mapearParaResponseDTO(LogColisao log) {
