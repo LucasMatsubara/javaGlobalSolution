@@ -10,5 +10,5 @@ import java.util.List;
 public interface SateliteRepository extends JpaRepository<Satelite, Long> {
 
     // busca lista satélites de empresa específica
-    List<Satelite> findByEmpresaProprietariaIgnoreCase(String empresaProprietaria);
+    List<Satelite> findByEmpresaNomeIgnoreCase(String empresaProprietaria);
 }
