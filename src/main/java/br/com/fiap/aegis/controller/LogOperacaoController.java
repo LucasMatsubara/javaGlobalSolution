@@ -17,17 +17,17 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping("/api/logs-colisao")
-@Tag(name = "Logs de Colisão (Alertas)", description = "Endpoints de auditoria para visualização de aproximações perigosas e rotas críticas detetadas")
+@RequestMapping("/api/logs")
+@Tag(name = "Histórico de Operações (Logs)", description = "Endpoints de auditoria para visualização da timeline de atividades recentes do sistema AEGIS")
 public class LogOperacaoController {
 
     @Autowired
-    private LogOperacaoService logColisaoService;
+    private LogOperacaoService logService;
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar Alerta por ID", description = "Retorna os detalhes de um alerta de colisão específico")
+    @Operation(summary = "Buscar Log por ID", description = "Retorna os detalhes técnicos de um registo de operação específico")
     public ResponseEntity<EntityModel<LogOperacaoResponseDTO>> buscarPorId(@PathVariable Long id) {
-        LogOperacaoResponseDTO response = logColisaoService.buscarPorId(id);
+        LogOperacaoResponseDTO response = logService.buscarPorId(id);
 
         EntityModel<LogOperacaoResponseDTO> resource = EntityModel.of(response);
         resource.add(linkTo(methodOn(LogOperacaoController.class).buscarPorId(id)).withSelfRel());
@@ -37,9 +37,9 @@ public class LogOperacaoController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os Alertas", description = "Retorna o painel completo de alertas e riscos de colisão registados pelo sistema")
+    @Operation(summary = "Listar todos os Logs", description = "Retorna a cronologia completa de eventos do sistema (Atividade Recente) ordenada da mais recente para a mais antiga")
     public ResponseEntity<CollectionModel<EntityModel<LogOperacaoResponseDTO>>> listarTodos() {
-        List<EntityModel<LogOperacaoResponseDTO>> logs = logColisaoService.listarTodos().stream()
+        List<EntityModel<LogOperacaoResponseDTO>> logs = logService.listarTodos().stream()
                 .map(log -> EntityModel.of(log,
                         linkTo(methodOn(LogOperacaoController.class).buscarPorId(log.id())).withSelfRel(),
                         linkTo(methodOn(LogOperacaoController.class).listarTodos()).withRel("todos-logs")))

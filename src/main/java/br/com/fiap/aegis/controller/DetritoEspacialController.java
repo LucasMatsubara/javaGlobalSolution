@@ -21,14 +21,14 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/detritos")
-@Tag(name = "Detritos Espaciais", description = "Endpoints para catalogação e rastreamento de lixo espacial e seus níveis de risco")
+@Tag(name = "Detritos Espaciais", description = "Endpoints para catalogação e radar de rastreamento de ameaças orbitais")
 public class DetritoEspacialController {
 
     @Autowired
     private DetritoEspacialService detritoService;
 
     @PostMapping
-    @Operation(summary = "Registrar novo detrito espacial", description = "Cataloga um novo fragmento de lixo espacial detectado pelos sistemas de radar")
+    @Operation(summary = "Registrar novo detrito espacial", description = "Cataloga uma nova ameaça identificada pelo radar com altitude e velocidade específicas")
     public ResponseEntity<EntityModel<DetritoResponseDTO>> registrarDetrito(@Valid @RequestBody DetritoRequestDTO dto) {
         DetritoResponseDTO response = detritoService.registrarDetrito(dto);
 
@@ -40,7 +40,7 @@ public class DetritoEspacialController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar detrito por ID", description = "Retorna as coordenadas orbitais e o nível de risco de um detrito específico")
+    @Operation(summary = "Buscar detrito por ID", description = "Retorna as coordenadas, altitude, velocidade e risco de colisão de um fragmento específico")
     public ResponseEntity<EntityModel<DetritoResponseDTO>> buscarPorId(@PathVariable Long id) {
         DetritoResponseDTO response = detritoService.buscarPorId(id);
 
@@ -52,7 +52,7 @@ public class DetritoEspacialController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os detritos catalogados", description = "Retorna a lista completa de lixo espacial sob monitoramento na órbita terrestre")
+    @Operation(summary = "Listar todos os detritos", description = "Retorna a lista completa de lixo espacial ativo sob o radar de ameaças")
     public ResponseEntity<CollectionModel<EntityModel<DetritoResponseDTO>>> listarTodos() {
         List<EntityModel<DetritoResponseDTO>> detritos = detritoService.listarTodos().stream()
                 .map(detrito -> EntityModel.of(detrito,

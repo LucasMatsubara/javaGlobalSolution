@@ -21,14 +21,14 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/satelites")
-@Tag(name = "Satélites Comerciais", description = "Endpoints para cadastro e monitorização de satélites ativos em órbita que necessitam de proteção")
+@Tag(name = "Satélites Comerciais", description = "Endpoints para lançamento, monitoramento e gestão da base de satélites ativos")
 public class SateliteController {
 
     @Autowired
     private SateliteService sateliteService;
 
     @PostMapping
-    @Operation(summary = "Cadastrar novo Satélite", description = "Regista um novo satélite comercial controlado na órbita monitorizada")
+    @Operation(summary = "Lançar novo Satélite", description = "Registra um novo satélite monitorado com dados do NORAD ID, altitude e inclinação")
     public ResponseEntity<EntityModel<SateliteResponseDTO>> cadastrarSatelite(@Valid @RequestBody SateliteRequestDTO dto) {
         SateliteResponseDTO response = sateliteService.cadastrarSatelite(dto);
 
@@ -40,7 +40,7 @@ public class SateliteController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar Satélite por ID", description = "Retorna os detalhes técnicos de um satélite específico")
+    @Operation(summary = "Buscar Satélite por ID", description = "Retorna os detalhes técnicos, altitude e dados operacionais de um satélite específico")
     public ResponseEntity<EntityModel<SateliteResponseDTO>> buscarPorId(@PathVariable Long id) {
         SateliteResponseDTO response = sateliteService.buscarPorId(id);
 
@@ -52,7 +52,7 @@ public class SateliteController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os Satélites", description = "Retorna a frota global de satélites cadastrados no sistema")
+    @Operation(summary = "Listar todos os Satélites", description = "Retorna a frota global de satélites cadastrados no sistema da operadora")
     public ResponseEntity<CollectionModel<EntityModel<SateliteResponseDTO>>> listarTodos() {
         List<EntityModel<SateliteResponseDTO>> satelites = sateliteService.listarTodos().stream()
                 .map(satelite -> EntityModel.of(satelite,
