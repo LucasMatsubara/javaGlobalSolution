@@ -49,21 +49,44 @@ public class SateliteService {
         satelite.setCoordenadas(coordenadas);
 
         Satelite sateliteSalvo = sateliteRepository.save(satelite);
-
-        // registro de log automático para o dashboard
-        logService.registarAcao(
-                sateliteSalvo.getNome(),
-                "Lançamento orbital nominal.",
-                "INFO"
-        );
-
+        logService.registarAcao(sateliteSalvo.getNome(), "Lançamento orbital nominal.", "INFO");
         return mapearParaResponseDTO(sateliteSalvo);
     }
 
+    public SateliteResponseDTO atualizarSatelite(Long id, SateliteRequestDTO dto) {
+        Satelite satelite = sateliteRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Satélite não encontrado com ID: " + id));
+
+        Empresa empresa = empresaRepository.findById(dto.empresaId())
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrada com ID: " + dto.empresaId()));
+
+        satelite.setNome(dto.nome());
+        satelite.setNoradId(dto.noradId());
+        satelite.setInclinacao(dto.inclinacao());
+        satelite.setDataLancamento(dto.dataLancamento());
+        satelite.setStatusSatelite(dto.statusSatelite());
+        satelite.setMassaKg(dto.massaKg());
+        satelite.setTipoBanda(dto.tipoBanda());
+        satelite.setEmpresa(empresa);
+
+        satelite.getCoordenadas().setEixoX(dto.coordenadas().eixoX());
+        satelite.getCoordenadas().setEixoY(dto.coordenadas().eixoY());
+        satelite.getCoordenadas().setAltitude(dto.coordenadas().altitude());
+
+        Satelite sateliteAtualizado = sateliteRepository.save(satelite);
+        logService.registarAcao(sateliteAtualizado.getNome(), "Dados operacionais atualizados.", "SISTEMA");
+        return mapearParaResponseDTO(sateliteAtualizado);
+    }
+
+    public void deletarSatelite(Long id) {
+        Satelite satelite = sateliteRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Satélite não encontrado com ID: " + id));
+        sateliteRepository.delete(satelite);
+        logService.registarAcao(satelite.getNome(), "Satélite removido do monitoramento orbital.", "ALTO");
+    }
+
     public List<SateliteResponseDTO> listarTodos() {
-        return sateliteRepository.findAll().stream()
-                .map(this::mapearParaResponseDTO)
-                .collect(Collectors.toList());
+        return sateliteRepository.findAll().stream().map(this::mapearParaResponseDTO).collect(Collectors.toList());
     }
 
     public SateliteResponseDTO buscarPorId(Long id) {
@@ -78,24 +101,15 @@ public class SateliteService {
                 satelite.getCoordenadas().getEixoY(),
                 satelite.getCoordenadas().getAltitude()
         );
-
         EmpresaResponseDTO empresaDTO = new EmpresaResponseDTO(
                 satelite.getEmpresa().getId(),
                 satelite.getEmpresa().getNome(),
                 satelite.getEmpresa().getCnpj()
         );
-
         return new SateliteResponseDTO(
-                satelite.getId(),
-                satelite.getNome(),
-                satelite.getNoradId(),
-                satelite.getInclinacao(),
-                satelite.getDataLancamento(),
-                satelite.getStatusSatelite(),
-                satelite.getMassaKg(),
-                satelite.getTipoBanda(),
-                coordDTO,
-                empresaDTO
+                satelite.getId(), satelite.getNome(), satelite.getNoradId(),
+                satelite.getInclinacao(), satelite.getDataLancamento(), satelite.getStatusSatelite(),
+                satelite.getMassaKg(), satelite.getTipoBanda(), coordDTO, empresaDTO
         );
     }
 }

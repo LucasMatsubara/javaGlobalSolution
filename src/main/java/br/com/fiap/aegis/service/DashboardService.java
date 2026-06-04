@@ -33,7 +33,6 @@ public class DashboardService {
         long satelitesAtivos = sateliteRepository.countByStatusSatelite(StatusSatelite.ATIVO);
         long dronesEmMissao = droneRepository.countByStatusOperacional(StatusOperacional.INTERCEPTANDO);
 
-        // Agora passando o Enum RiscoColisao diretamente
         long ameacasCriticas = detritoRepository.countByRiscoColisao(RiscoColisao.CRITICO);
         long ameacasAltas = detritoRepository.countByRiscoColisao(RiscoColisao.ALTO);
 

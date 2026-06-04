@@ -22,24 +22,30 @@ public class DroneLimpezaService {
 
     public DroneResponseDTO cadastrarDrone(DroneRequestDTO dto) {
         DroneLimpeza drone = new DroneLimpeza();
-        drone.setNome(dto.nome()); // inicia automaticamente com 100% de bateria e NA_BASE
-
+        drone.setNome(dto.nome());
         DroneLimpeza droneSalvo = droneRepository.save(drone);
-
-        // registro de log automático para o dashboard
-        logService.registarAcao(
-                droneSalvo.getNome(),
-                "Nova unidade de interceptação fabricada.",
-                "SISTEMA"
-        );
-
+        logService.registarAcao(droneSalvo.getNome(), "Nova unidade de interceptação fabricada.", "SISTEMA");
         return mapearParaResponseDTO(droneSalvo);
     }
 
+    public DroneResponseDTO atualizarDrone(Long id, DroneRequestDTO dto) {
+        DroneLimpeza drone = droneRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Drone não encontrado com ID: " + id));
+        drone.setNome(dto.nome());
+        DroneLimpeza droneAtualizado = droneRepository.save(drone);
+        logService.registarAcao(droneAtualizado.getNome(), "Designação da unidade alterada.", "SISTEMA");
+        return mapearParaResponseDTO(droneAtualizado);
+    }
+
+    public void deletarDrone(Long id) {
+        DroneLimpeza drone = droneRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Drone não encontrado com ID: " + id));
+        droneRepository.delete(drone);
+        logService.registarAcao(drone.getNome(), "Unidade de interceptação desativada e sucateada.", "ALTO");
+    }
+
     public List<DroneResponseDTO> listarTodos() {
-        return droneRepository.findAll().stream()
-                .map(this::mapearParaResponseDTO)
-                .collect(Collectors.toList());
+        return droneRepository.findAll().stream().map(this::mapearParaResponseDTO).collect(Collectors.toList());
     }
 
     public DroneResponseDTO buscarPorId(Long id) {
@@ -49,11 +55,6 @@ public class DroneLimpezaService {
     }
 
     private DroneResponseDTO mapearParaResponseDTO(DroneLimpeza drone) {
-        return new DroneResponseDTO(
-                drone.getId(),
-                drone.getNome(),
-                drone.getNivelBateria(),
-                drone.getStatusOperacional()
-        );
+        return new DroneResponseDTO(drone.getId(), drone.getNome(), drone.getNivelBateria(), drone.getStatusOperacional());
     }
 }

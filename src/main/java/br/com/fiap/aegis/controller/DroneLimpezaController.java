@@ -28,41 +28,50 @@ public class DroneLimpezaController {
     private DroneLimpezaService droneService;
 
     @PostMapping
-    @Operation(summary = "Fabricar novo Drone", description = "Registra uma nova unidade de interceptação na base com 100% de bateria")
+    @Operation(summary = "Fabricar novo Drone")
     public ResponseEntity<EntityModel<DroneResponseDTO>> cadastrarDrone(@Valid @RequestBody DroneRequestDTO dto) {
         DroneResponseDTO response = droneService.cadastrarDrone(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(criarEntityModel(response));
+    }
 
-        EntityModel<DroneResponseDTO> resource = EntityModel.of(response);
-        resource.add(linkTo(methodOn(DroneLimpezaController.class).buscarPorId(response.id())).withSelfRel());
-        resource.add(linkTo(methodOn(DroneLimpezaController.class).listarTodos()).withRel("todos-drones"));
+    @PutMapping("/{id}")
+    @Operation(summary = "Atualizar nome do Drone")
+    public ResponseEntity<EntityModel<DroneResponseDTO>> atualizarDrone(@PathVariable Long id, @Valid @RequestBody DroneRequestDTO dto) {
+        DroneResponseDTO response = droneService.atualizarDrone(id, dto);
+        return ResponseEntity.ok(criarEntityModel(response));
+    }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(resource);
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Desativar/Excluir Unidade da Frota")
+    public ResponseEntity<Void> deletarDrone(@PathVariable Long id) {
+        droneService.deletarDrone(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar Drone por ID", description = "Retorna o status operacional e nível de bateria de um drone específico")
+    @Operation(summary = "Buscar Drone por ID")
     public ResponseEntity<EntityModel<DroneResponseDTO>> buscarPorId(@PathVariable Long id) {
         DroneResponseDTO response = droneService.buscarPorId(id);
-
-        EntityModel<DroneResponseDTO> resource = EntityModel.of(response);
-        resource.add(linkTo(methodOn(DroneLimpezaController.class).buscarPorId(id)).withSelfRel());
-        resource.add(linkTo(methodOn(DroneLimpezaController.class).listarTodos()).withRel("todos-drones"));
-
-        return ResponseEntity.ok(resource);
+        return ResponseEntity.ok(criarEntityModel(response));
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os Drones", description = "Retorna o status e bateria de toda a frota de drones rastreados")
+    @Operation(summary = "Listar todos os Drones")
     public ResponseEntity<CollectionModel<EntityModel<DroneResponseDTO>>> listarTodos() {
         List<EntityModel<DroneResponseDTO>> drones = droneService.listarTodos().stream()
-                .map(drone -> EntityModel.of(drone,
-                        linkTo(methodOn(DroneLimpezaController.class).buscarPorId(drone.id())).withSelfRel(),
-                        linkTo(methodOn(DroneLimpezaController.class).listarTodos()).withRel("todos-drones")))
+                .map(this::criarEntityModel)
                 .collect(Collectors.toList());
-
         CollectionModel<EntityModel<DroneResponseDTO>> collectionModel = CollectionModel.of(drones);
         collectionModel.add(linkTo(methodOn(DroneLimpezaController.class).listarTodos()).withSelfRel());
-
         return ResponseEntity.ok(collectionModel);
+    }
+
+    private EntityModel<DroneResponseDTO> criarEntityModel(DroneResponseDTO response) {
+        EntityModel<DroneResponseDTO> resource = EntityModel.of(response);
+        resource.add(linkTo(methodOn(DroneLimpezaController.class).buscarPorId(response.id())).withSelfRel());
+        resource.add(linkTo(methodOn(DroneLimpezaController.class).atualizarDrone(response.id(), null)).withRel("atualizar"));
+        resource.add(linkTo(methodOn(DroneLimpezaController.class).deletarDrone(response.id())).withRel("deletar"));
+        resource.add(linkTo(methodOn(DroneLimpezaController.class).listarTodos()).withRel("todos-drones"));
+        return resource;
     }
 }

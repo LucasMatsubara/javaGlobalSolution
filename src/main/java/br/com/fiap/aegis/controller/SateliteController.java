@@ -28,41 +28,50 @@ public class SateliteController {
     private SateliteService sateliteService;
 
     @PostMapping
-    @Operation(summary = "Lançar novo Satélite", description = "Registra um novo satélite monitorado com dados do NORAD ID, altitude e inclinação")
+    @Operation(summary = "Lançar novo Satélite", description = "Registra um novo satélite com telemetria inicial")
     public ResponseEntity<EntityModel<SateliteResponseDTO>> cadastrarSatelite(@Valid @RequestBody SateliteRequestDTO dto) {
         SateliteResponseDTO response = sateliteService.cadastrarSatelite(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(criarEntityModel(response));
+    }
 
-        EntityModel<SateliteResponseDTO> resource = EntityModel.of(response);
-        resource.add(linkTo(methodOn(SateliteController.class).buscarPorId(response.id())).withSelfRel());
-        resource.add(linkTo(methodOn(SateliteController.class).listarTodos()).withRel("todos-satelites"));
+    @PutMapping("/{id}")
+    @Operation(summary = "Atualizar Satélite", description = "Altera os parâmetros de órbita ou status do satélite (Botão Editar do App)")
+    public ResponseEntity<EntityModel<SateliteResponseDTO>> atualizarSatelite(@PathVariable Long id, @Valid @RequestBody SateliteRequestDTO dto) {
+        SateliteResponseDTO response = sateliteService.atualizarSatelite(id, dto);
+        return ResponseEntity.ok(criarEntityModel(response));
+    }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(resource);
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Deletar/Remover Satélite", description = "Desativa e remove o satélite do radar (Botão Lixeira do App)")
+    public ResponseEntity<Void> deletarSatelite(@PathVariable Long id) {
+        sateliteService.deletarSatelite(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar Satélite por ID", description = "Retorna os detalhes técnicos, altitude e dados operacionais de um satélite específico")
+    @Operation(summary = "Buscar Satélite por ID")
     public ResponseEntity<EntityModel<SateliteResponseDTO>> buscarPorId(@PathVariable Long id) {
         SateliteResponseDTO response = sateliteService.buscarPorId(id);
-
-        EntityModel<SateliteResponseDTO> resource = EntityModel.of(response);
-        resource.add(linkTo(methodOn(SateliteController.class).buscarPorId(id)).withSelfRel());
-        resource.add(linkTo(methodOn(SateliteController.class).listarTodos()).withRel("todos-satelites"));
-
-        return ResponseEntity.ok(resource);
+        return ResponseEntity.ok(criarEntityModel(response));
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os Satélites", description = "Retorna a frota global de satélites cadastrados no sistema da operadora")
+    @Operation(summary = "Listar todos os Satélites")
     public ResponseEntity<CollectionModel<EntityModel<SateliteResponseDTO>>> listarTodos() {
         List<EntityModel<SateliteResponseDTO>> satelites = sateliteService.listarTodos().stream()
-                .map(satelite -> EntityModel.of(satelite,
-                        linkTo(methodOn(SateliteController.class).buscarPorId(satelite.id())).withSelfRel(),
-                        linkTo(methodOn(SateliteController.class).listarTodos()).withRel("todos-satelites")))
+                .map(this::criarEntityModel)
                 .collect(Collectors.toList());
-
         CollectionModel<EntityModel<SateliteResponseDTO>> collectionModel = CollectionModel.of(satelites);
         collectionModel.add(linkTo(methodOn(SateliteController.class).listarTodos()).withSelfRel());
-
         return ResponseEntity.ok(collectionModel);
+    }
+
+    private EntityModel<SateliteResponseDTO> criarEntityModel(SateliteResponseDTO response) {
+        EntityModel<SateliteResponseDTO> resource = EntityModel.of(response);
+        resource.add(linkTo(methodOn(SateliteController.class).buscarPorId(response.id())).withSelfRel());
+        resource.add(linkTo(methodOn(SateliteController.class).atualizarSatelite(response.id(), null)).withRel("atualizar"));
+        resource.add(linkTo(methodOn(SateliteController.class).deletarSatelite(response.id())).withRel("deletar"));
+        resource.add(linkTo(methodOn(SateliteController.class).listarTodos()).withRel("todos-satelites"));
+        return resource;
     }
 }
