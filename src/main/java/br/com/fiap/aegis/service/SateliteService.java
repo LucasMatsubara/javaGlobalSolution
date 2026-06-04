@@ -31,6 +31,10 @@ public class SateliteService {
 
         Satelite satelite = new Satelite();
         satelite.setNome(dto.nome());
+        satelite.setNoradId(dto.noradId());
+        satelite.setInclinacao(dto.inclinacao());
+        satelite.setDataLancamento(dto.dataLancamento());
+        satelite.setStatusSatelite(dto.statusSatelite());
         satelite.setMassaKg(dto.massaKg());
         satelite.setTipoBanda(dto.tipoBanda());
         satelite.setEmpresa(empresa);
@@ -38,7 +42,7 @@ public class SateliteService {
         CoordenadaOrbital coordenadas = new CoordenadaOrbital();
         coordenadas.setEixoX(dto.coordenadas().eixoX());
         coordenadas.setEixoY(dto.coordenadas().eixoY());
-        coordenadas.setEixoZ(dto.coordenadas().eixoZ());
+        coordenadas.setAltitude(dto.coordenadas().altitude()); // Mapeamento corrigido
         satelite.setCoordenadas(coordenadas);
 
         Satelite sateliteSalvo = sateliteRepository.save(satelite);
@@ -53,7 +57,7 @@ public class SateliteService {
 
     public SateliteResponseDTO buscarPorId(Long id) {
         Satelite satelite = sateliteRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Satélite não encontrado com o ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Satélite não encontrado com ID: " + id));
         return mapearParaResponseDTO(satelite);
     }
 
@@ -61,7 +65,7 @@ public class SateliteService {
         CoordenadaDTO coordDTO = new CoordenadaDTO(
                 satelite.getCoordenadas().getEixoX(),
                 satelite.getCoordenadas().getEixoY(),
-                satelite.getCoordenadas().getEixoZ()
+                satelite.getCoordenadas().getAltitude()
         );
 
         EmpresaResponseDTO empresaDTO = new EmpresaResponseDTO(
@@ -73,9 +77,13 @@ public class SateliteService {
         return new SateliteResponseDTO(
                 satelite.getId(),
                 satelite.getNome(),
+                satelite.getNoradId(),
+                satelite.getInclinacao(),
+                satelite.getDataLancamento(),
+                satelite.getStatusSatelite(),
                 satelite.getMassaKg(),
-                coordDTO,
                 satelite.getTipoBanda(),
+                coordDTO,
                 empresaDTO
         );
     }

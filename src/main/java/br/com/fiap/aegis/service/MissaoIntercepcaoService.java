@@ -37,12 +37,33 @@ public class MissaoIntercepcaoService {
         DetritoEspacial detrito = detritoRepository.findById(dto.detritoId())
                 .orElseThrow(() -> new ResourceNotFoundException("Detrito não encontrado com ID: " + dto.detritoId()));
 
-        if (drone.getStatusOperacional() != StatusOperacional.EM_BASE) {
-            throw new IllegalStateException("O Drone não pode ser despachado. Status atual: " + drone.getStatusOperacional());
+        // 1: verificar se o drone escolhido está livre na base
+        if (drone.getStatusOperacional() != StatusOperacional.NA_BASE) {
+            throw new IllegalStateException("O Drone selecionado não está disponível. Status atual: " + drone.getStatusOperacional());
         }
 
-        MissaoId missaoId = new MissaoId(drone.getId(), detrito.getId());
+        // 2: calcular o consumo de bateria baseado no risco do detrito
+        double consumo;
+        String risco = detrito.getRiscoColisao().toUpperCase();
+        if (risco.contains("MODERADO")) {
+            consumo = 20.0;
+        } else if (risco.contains("ALTO")) {
+            consumo = 50.0;
+        } else { // CRÍTICO
+            consumo = 80.0;
+        }
 
+        // 3: verificar se o drone tem carga suficiente para a missão
+        if (drone.getNivelBateria() < consumo) {
+            throw new IllegalStateException("Drone com bateria insuficiente para esta missão. Requer: " + consumo + "%, Atual: " + drone.getNivelBateria() + "%");
+        }
+
+        // executar despacho e abater a bateria
+        drone.setNivelBateria(drone.getNivelBateria() - consumo);
+        drone.setStatusOperacional(StatusOperacional.INTERCEPTANDO);
+        droneRepository.save(drone);
+
+        MissaoId missaoId = new MissaoId(drone.getId(), detrito.getId());
         MissaoIntercepcao missao = new MissaoIntercepcao();
         missao.setId(missaoId);
         missao.setDrone(drone);
@@ -50,11 +71,7 @@ public class MissaoIntercepcaoService {
         missao.setStatusMissao(dto.statusMissao());
         missao.setDataMissao(LocalDateTime.now());
 
-        drone.setStatusOperacional(StatusOperacional.EM_MISSAO);
-        droneRepository.save(drone);
-
         MissaoIntercepcao missaoSalva = missaoRepository.save(missao);
-
         return mapearParaResponseDTO(missaoSalva);
     }
 
@@ -67,8 +84,7 @@ public class MissaoIntercepcaoService {
     public MissaoResponseDTO buscarPorIdComposto(Long droneId, Long detritoId) {
         MissaoId id = new MissaoId(droneId, detritoId);
         MissaoIntercepcao missao = missaoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Missão não encontrada para o Drone ID: " + droneId + " e Detrito ID: " + detritoId));
+                .orElseThrow(() -> new ResourceNotFoundException("Missão não encontrada."));
         return mapearParaResponseDTO(missao);
     }
 
