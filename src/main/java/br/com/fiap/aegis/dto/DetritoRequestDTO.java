@@ -1,5 +1,6 @@
 package br.com.fiap.aegis.dto;
 
+import br.com.fiap.aegis.enums.RiscoColisao;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -10,7 +11,7 @@ public record DetritoRequestDTO(
         @NotNull @Positive Double massaKg,
         @NotNull @Positive Double velocidade,
         @NotNull @Valid CoordenadaDTO coordenadas,
-        @NotBlank String riscoColisao,
+        @NotNull RiscoColisao riscoColisao,
         @NotBlank String origem
 ) {}
 

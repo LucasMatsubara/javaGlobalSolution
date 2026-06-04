@@ -3,6 +3,7 @@ package br.com.fiap.aegis.model;
 import br.com.fiap.aegis.enums.StatusMissao;
 import jakarta.persistence.*;
 import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 public class MissaoIntercepcao {
 
     @EmbeddedId
-    private MissaoId id = new MissaoId();
+    private MissaoId id;
 
     @ManyToOne
     @MapsId("droneId")
@@ -26,6 +27,5 @@ public class MissaoIntercepcao {
     private LocalDateTime dataMissao;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private StatusMissao statusMissao;
 }

@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface DetritoEspacialRepository extends JpaRepository<DetritoEspacial, Long> {
     List<DetritoEspacial> findByRiscoColisao(RiscoColisao riscoColisao);
-    long countByRiscoColisaoIgnoreCase(String risco);
+    long countByRiscoColisao(RiscoColisao risco);
 }

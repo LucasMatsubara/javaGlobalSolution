@@ -1,9 +1,9 @@
 package br.com.fiap.aegis.enums;
 
 public enum StatusMissao {
-    PENDENTE,
-    DESPACHADA,
-    EM_APROXIMACAO,
-    CAPTURADA,
-    FALHA
+    AUTORIZADA,
+    EM_ANDAMENTO,
+    CONCLUIDA_SUCESSO,
+    FALHOU,
+    ABORTADA
 }

@@ -2,6 +2,7 @@ package br.com.fiap.aegis.service;
 
 import br.com.fiap.aegis.dto.MissaoRequestDTO;
 import br.com.fiap.aegis.dto.MissaoResponseDTO;
+import br.com.fiap.aegis.enums.RiscoColisao;
 import br.com.fiap.aegis.enums.StatusOperacional;
 import br.com.fiap.aegis.exception.ResourceNotFoundException;
 import br.com.fiap.aegis.model.DetritoEspacial;
@@ -40,28 +41,28 @@ public class MissaoIntercepcaoService {
         DetritoEspacial detrito = detritoRepository.findById(dto.detritoId())
                 .orElseThrow(() -> new ResourceNotFoundException("Detrito não encontrado com ID: " + dto.detritoId()));
 
-        // Regra 1: certificar se o drone escolhido está livre na base
         if (drone.getStatusOperacional() != StatusOperacional.NA_BASE) {
             throw new IllegalStateException("O Drone selecionado não está disponível. Status atual: " + drone.getStatusOperacional());
         }
 
-        // Regra 2: calcular o consumo de bateria baseado no risco do detrito
+        // Regra de Consumo Baseada no Enum RiscoColisao
         double consumo;
-        String risco = detrito.getRiscoColisao().toUpperCase();
-        if (risco.contains("MODERADO")) {
+        RiscoColisao risco = detrito.getRiscoColisao();
+
+        if (risco == RiscoColisao.MODERADO) {
             consumo = 20.0;
-        } else if (risco.contains("ALTO")) {
+        } else if (risco == RiscoColisao.ALTO) {
             consumo = 50.0;
-        } else { // CRÍTICO
+        } else if (risco == RiscoColisao.CRITICO) {
             consumo = 80.0;
+        } else {
+            consumo = 10.0; // BAIXO
         }
 
-        // Regra 3: verificar se o drone tem carga suficiente para a missão
         if (drone.getNivelBateria() < consumo) {
             throw new IllegalStateException("Drone com bateria insuficiente para esta missão. Requer: " + consumo + "%, Atual: " + drone.getNivelBateria() + "%");
         }
 
-        // executar despacho e abater a bateria
         drone.setNivelBateria(drone.getNivelBateria() - consumo);
         drone.setStatusOperacional(StatusOperacional.INTERCEPTANDO);
         droneRepository.save(drone);
@@ -76,18 +77,16 @@ public class MissaoIntercepcaoService {
 
         MissaoIntercepcao missaoSalva = missaoRepository.save(missao);
 
-        // LOG 1: registro do despacho imediato do drone
         logService.registarAcao(
                 drone.getNome(),
                 "Drone despachado para interceptar " + detrito.getNome() + ".",
-                "MODERADO"
+                risco.name()
         );
 
-        // LOG 2: registro de confirmação da neutralização da ameaça
         logService.registarAcao(
                 detrito.getNome(),
                 "Ameaça neutralizada com sucesso por " + drone.getNome() + ".",
-                "CRITICO"
+                "INFO"
         );
 
         return mapearParaResponseDTO(missaoSalva);

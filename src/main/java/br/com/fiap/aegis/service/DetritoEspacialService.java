@@ -25,12 +25,12 @@ public class DetritoEspacialService {
         detrito.setMassaKg(dto.massaKg());
         detrito.setVelocidade(dto.velocidade());
         detrito.setRiscoColisao(dto.riscoColisao());
-        detrito.setOrigen(dto.origen());
+        detrito.setOrigen(dto.origem());
 
         CoordenadaOrbital coordenadas = new CoordenadaOrbital();
         coordenadas.setEixoX(dto.coordenadas().eixoX());
         coordenadas.setEixoY(dto.coordenadas().eixoY());
-        coordenadas.setAltitude(dto.coordenadas().altitude()); // Mapeamento corrigido
+        coordenadas.setAltitude(dto.coordenadas().altitude());
         detrito.setCoordenadas(coordenadas);
 
         DetritoEspacial detritoSalvo = detritoRepository.save(detrito);

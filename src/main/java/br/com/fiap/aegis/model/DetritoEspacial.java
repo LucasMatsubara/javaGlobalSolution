@@ -1,5 +1,6 @@
 package br.com.fiap.aegis.model;
 
+import br.com.fiap.aegis.enums.RiscoColisao;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -14,12 +15,12 @@ public class DetritoEspacial {
 
     private String nome;
     private Double massaKg;
-
-    // velocidade em km/s
     private Double velocidade;
 
-    private String riscoColisao;
-    private String origem;
+    @Enumerated(EnumType.STRING)
+    private RiscoColisao riscoColisao;
+
+    private String origen;
 
     @Embedded
     private CoordenadaOrbital coordenadas;

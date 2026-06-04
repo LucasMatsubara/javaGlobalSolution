@@ -2,7 +2,7 @@ package br.com.fiap.aegis.enums;
 
 public enum RiscoColisao {
     BAIXO,
-    MEDIO,
+    MODERADO,
     ALTO,
     CRITICO
 }
