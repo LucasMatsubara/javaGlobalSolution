@@ -1,10 +1,8 @@
 package br.com.fiap.aegis.service;
 
-import br.com.fiap.aegis.dto.CoordenadaDTO;
 import br.com.fiap.aegis.dto.DroneRequestDTO;
 import br.com.fiap.aegis.dto.DroneResponseDTO;
 import br.com.fiap.aegis.exception.ResourceNotFoundException;
-import br.com.fiap.aegis.model.CoordenadaOrbital;
 import br.com.fiap.aegis.model.DroneLimpeza;
 import br.com.fiap.aegis.repository.DroneLimpezaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,19 +19,9 @@ public class DroneLimpezaService {
 
     public DroneResponseDTO cadastrarDrone(DroneRequestDTO dto) {
         DroneLimpeza drone = new DroneLimpeza();
-        drone.setNome(dto.nome());
-        drone.setMassaKg(dto.massaKg());
-        drone.setNivelBateria(dto.nivelBateria());
-        drone.setStatusOperacional(dto.statusOperacional());
-
-        CoordenadaOrbital coordenadas = new CoordenadaOrbital();
-        coordenadas.setEixoX(dto.coordenadas().eixoX());
-        coordenadas.setEixoY(dto.coordenadas().eixoY());
-        coordenadas.setEixoZ(dto.coordenadas().eixoZ());
-        drone.setCoordenadas(coordenadas);
+        drone.setNome(dto.nome()); // inicia automaticamente com 100% de bateria e NA_BASE
 
         DroneLimpeza droneSalvo = droneRepository.save(drone);
-
         return mapearParaResponseDTO(droneSalvo);
     }
 
@@ -45,22 +33,14 @@ public class DroneLimpezaService {
 
     public DroneResponseDTO buscarPorId(Long id) {
         DroneLimpeza drone = droneRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Drone não encontrado com o ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Drone não encontrado com ID: " + id));
         return mapearParaResponseDTO(drone);
     }
 
     private DroneResponseDTO mapearParaResponseDTO(DroneLimpeza drone) {
-        CoordenadaDTO coordDTO = new CoordenadaDTO(
-                drone.getCoordenadas().getEixoX(),
-                drone.getCoordenadas().getEixoY(),
-                drone.getCoordenadas().getEixoZ()
-        );
-
         return new DroneResponseDTO(
                 drone.getId(),
                 drone.getNome(),
-                drone.getMassaKg(),
-                coordDTO,
                 drone.getNivelBateria(),
                 drone.getStatusOperacional()
         );

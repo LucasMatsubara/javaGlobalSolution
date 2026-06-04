@@ -23,17 +23,17 @@ public class DetritoEspacialService {
         DetritoEspacial detrito = new DetritoEspacial();
         detrito.setNome(dto.nome());
         detrito.setMassaKg(dto.massaKg());
+        detrito.setVelocidade(dto.velocidade());
         detrito.setRiscoColisao(dto.riscoColisao());
-        detrito.setOrigem(dto.origem());
+        detrito.setOrigen(dto.origen());
 
         CoordenadaOrbital coordenadas = new CoordenadaOrbital();
         coordenadas.setEixoX(dto.coordenadas().eixoX());
         coordenadas.setEixoY(dto.coordenadas().eixoY());
-        coordenadas.setEixoZ(dto.coordenadas().eixoZ());
+        coordenadas.setAltitude(dto.coordenadas().altitude()); // Mapeamento corrigido
         detrito.setCoordenadas(coordenadas);
 
         DetritoEspacial detritoSalvo = detritoRepository.save(detrito);
-
         return mapearParaResponseDTO(detritoSalvo);
     }
 
@@ -45,7 +45,7 @@ public class DetritoEspacialService {
 
     public DetritoResponseDTO buscarPorId(Long id) {
         DetritoEspacial detrito = detritoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Detrito espacial não encontrado com o ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Detrito não encontrado com ID: " + id));
         return mapearParaResponseDTO(detrito);
     }
 
@@ -53,16 +53,17 @@ public class DetritoEspacialService {
         CoordenadaDTO coordDTO = new CoordenadaDTO(
                 detrito.getCoordenadas().getEixoX(),
                 detrito.getCoordenadas().getEixoY(),
-                detrito.getCoordenadas().getEixoZ()
+                detrito.getCoordenadas().getAltitude()
         );
 
         return new DetritoResponseDTO(
                 detrito.getId(),
                 detrito.getNome(),
                 detrito.getMassaKg(),
+                detrito.getVelocidade(),
                 coordDTO,
                 detrito.getRiscoColisao(),
-                detrito.getOrigem()
+                detrito.getOrigen()
         );
     }
 }
