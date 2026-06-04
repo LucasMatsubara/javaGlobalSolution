@@ -6,7 +6,8 @@ public record DetritoResponseDTO(
         Long id,
         String nome,
         Double massaKg,
+        Double velocidade,
         CoordenadaDTO coordenadas,
-        RiscoColisao riscoColisao,
-        String origem
+        String riscoColisao,
+        String origen
 ) {}

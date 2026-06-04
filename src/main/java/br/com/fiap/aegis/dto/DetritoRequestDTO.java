@@ -9,7 +9,9 @@ import jakarta.validation.Valid;
 public record DetritoRequestDTO(
         @NotBlank String nome,
         @NotNull @Positive Double massaKg,
+        @NotNull @Positive Double velocidade,
         @NotNull @Valid CoordenadaDTO coordenadas,
-        @NotNull RiscoColisao riscoColisao,
+        @NotBlank String riscoColisao,
         @NotBlank String origem
 ) {}
+
