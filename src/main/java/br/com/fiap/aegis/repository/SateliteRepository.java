@@ -1,5 +1,6 @@
 package br.com.fiap.aegis.repository;
 
+import br.com.fiap.aegis.enums.StatusSatelite;
 import br.com.fiap.aegis.model.Satelite;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -11,4 +12,5 @@ public interface SateliteRepository extends JpaRepository<Satelite, Long> {
 
     // busca lista satélites de empresa específica
     List<Satelite> findByEmpresaNomeIgnoreCase(String empresaProprietaria);
+    long countByStatusSatelite(StatusSatelite status);
 }

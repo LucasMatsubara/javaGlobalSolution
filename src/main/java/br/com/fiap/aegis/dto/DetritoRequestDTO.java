@@ -1,6 +1,5 @@
 package br.com.fiap.aegis.dto;
 
-import br.com.fiap.aegis.enums.RiscoColisao;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;

@@ -10,4 +10,5 @@ import java.util.List;
 public interface DroneLimpezaRepository extends JpaRepository<DroneLimpeza, Long> {
     List<DroneLimpeza> findByStatusOperacional(StatusOperacional statusOperacional);
     List<DroneLimpeza> findByNivelBateriaLessThan(Double nivelBateria);
+    long countByStatusOperacional(StatusOperacional status);
 }
