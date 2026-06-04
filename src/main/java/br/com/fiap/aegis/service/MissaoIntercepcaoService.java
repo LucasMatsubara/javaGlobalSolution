@@ -30,6 +30,9 @@ public class MissaoIntercepcaoService {
     @Autowired
     private DetritoEspacialRepository detritoRepository;
 
+    @Autowired
+    private LogOperacaoService logService;
+
     public MissaoResponseDTO despacharDrone(MissaoRequestDTO dto) {
         DroneLimpeza drone = droneRepository.findById(dto.droneId())
                 .orElseThrow(() -> new ResourceNotFoundException("Drone não encontrado com ID: " + dto.droneId()));
@@ -37,12 +40,12 @@ public class MissaoIntercepcaoService {
         DetritoEspacial detrito = detritoRepository.findById(dto.detritoId())
                 .orElseThrow(() -> new ResourceNotFoundException("Detrito não encontrado com ID: " + dto.detritoId()));
 
-        // 1: verificar se o drone escolhido está livre na base
+        // Regra 1: certificar se o drone escolhido está livre na base
         if (drone.getStatusOperacional() != StatusOperacional.NA_BASE) {
             throw new IllegalStateException("O Drone selecionado não está disponível. Status atual: " + drone.getStatusOperacional());
         }
 
-        // 2: calcular o consumo de bateria baseado no risco do detrito
+        // Regra 2: calcular o consumo de bateria baseado no risco do detrito
         double consumo;
         String risco = detrito.getRiscoColisao().toUpperCase();
         if (risco.contains("MODERADO")) {
@@ -53,7 +56,7 @@ public class MissaoIntercepcaoService {
             consumo = 80.0;
         }
 
-        // 3: verificar se o drone tem carga suficiente para a missão
+        // Regra 3: verificar se o drone tem carga suficiente para a missão
         if (drone.getNivelBateria() < consumo) {
             throw new IllegalStateException("Drone com bateria insuficiente para esta missão. Requer: " + consumo + "%, Atual: " + drone.getNivelBateria() + "%");
         }
@@ -72,6 +75,21 @@ public class MissaoIntercepcaoService {
         missao.setDataMissao(LocalDateTime.now());
 
         MissaoIntercepcao missaoSalva = missaoRepository.save(missao);
+
+        // LOG 1: registro do despacho imediato do drone
+        logService.registarAcao(
+                drone.getNome(),
+                "Drone despachado para interceptar " + detrito.getNome() + ".",
+                "MODERADO"
+        );
+
+        // LOG 2: registro de confirmação da neutralização da ameaça
+        logService.registarAcao(
+                detrito.getNome(),
+                "Ameaça neutralizada com sucesso por " + drone.getNome() + ".",
+                "CRITICO"
+        );
+
         return mapearParaResponseDTO(missaoSalva);
     }
 

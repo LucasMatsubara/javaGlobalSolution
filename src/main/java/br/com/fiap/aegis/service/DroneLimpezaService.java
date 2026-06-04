@@ -17,11 +17,22 @@ public class DroneLimpezaService {
     @Autowired
     private DroneLimpezaRepository droneRepository;
 
+    @Autowired
+    private LogOperacaoService logService;
+
     public DroneResponseDTO cadastrarDrone(DroneRequestDTO dto) {
         DroneLimpeza drone = new DroneLimpeza();
         drone.setNome(dto.nome()); // inicia automaticamente com 100% de bateria e NA_BASE
 
         DroneLimpeza droneSalvo = droneRepository.save(drone);
+
+        // registro de log automático para o dashboard
+        logService.registarAcao(
+                droneSalvo.getNome(),
+                "Nova unidade de interceptação fabricada.",
+                "SISTEMA"
+        );
+
         return mapearParaResponseDTO(droneSalvo);
     }
 

@@ -25,6 +25,9 @@ public class SateliteService {
     @Autowired
     private EmpresaRepository empresaRepository;
 
+    @Autowired
+    private LogOperacaoService logService;
+
     public SateliteResponseDTO cadastrarSatelite(SateliteRequestDTO dto) {
         Empresa empresa = empresaRepository.findById(dto.empresaId())
                 .orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrada com ID: " + dto.empresaId()));
@@ -42,10 +45,18 @@ public class SateliteService {
         CoordenadaOrbital coordenadas = new CoordenadaOrbital();
         coordenadas.setEixoX(dto.coordenadas().eixoX());
         coordenadas.setEixoY(dto.coordenadas().eixoY());
-        coordenadas.setAltitude(dto.coordenadas().altitude()); // Mapeamento corrigido
+        coordenadas.setAltitude(dto.coordenadas().altitude());
         satelite.setCoordenadas(coordenadas);
 
         Satelite sateliteSalvo = sateliteRepository.save(satelite);
+
+        // registro de log automático para o dashboard
+        logService.registarAcao(
+                sateliteSalvo.getNome(),
+                "Lançamento orbital nominal.",
+                "INFO"
+        );
+
         return mapearParaResponseDTO(sateliteSalvo);
     }
 
