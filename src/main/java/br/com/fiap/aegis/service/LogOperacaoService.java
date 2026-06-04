@@ -5,11 +5,11 @@ import br.com.fiap.aegis.exception.ResourceNotFoundException;
 import br.com.fiap.aegis.model.LogOperacao;
 import br.com.fiap.aegis.repository.LogOperacaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class LogOperacaoService {
@@ -26,10 +26,9 @@ public class LogOperacaoService {
         logRepository.save(log);
     }
 
-    public List<LogOperacaoResponseDTO> listarTodos() {
-        return logRepository.findAllByOrderByDataHoraDesc().stream()
-                .map(this::mapearParaResponseDTO)
-                .collect(Collectors.toList());
+    public Page<LogOperacaoResponseDTO> listarTodosPaginado(Pageable pageable) {
+        return logRepository.findAllByOrderByDataHoraDesc(pageable)
+                .map(this::mapearParaResponseDTO);
     }
 
     public LogOperacaoResponseDTO buscarPorId(Long id) {

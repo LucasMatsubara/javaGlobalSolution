@@ -28,41 +28,50 @@ public class DetritoEspacialController {
     private DetritoEspacialService detritoService;
 
     @PostMapping
-    @Operation(summary = "Registrar novo detrito espacial", description = "Cataloga uma nova ameaça identificada pelo radar com altitude e velocidade específicas")
+    @Operation(summary = "Registrar novo detrito espacial")
     public ResponseEntity<EntityModel<DetritoResponseDTO>> registrarDetrito(@Valid @RequestBody DetritoRequestDTO dto) {
         DetritoResponseDTO response = detritoService.registrarDetrito(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(criarEntityModel(response));
+    }
 
-        EntityModel<DetritoResponseDTO> resource = EntityModel.of(response);
-        resource.add(linkTo(methodOn(DetritoEspacialController.class).buscarPorId(response.id())).withSelfRel());
-        resource.add(linkTo(methodOn(DetritoEspacialController.class).listarTodos()).withRel("todos-detritos"));
+    @PutMapping("/{id}")
+    @Operation(summary = "Atualizar dados da Ameaça")
+    public ResponseEntity<EntityModel<DetritoResponseDTO>> atualizarDetrito(@PathVariable Long id, @Valid @RequestBody DetritoRequestDTO dto) {
+        DetritoResponseDTO response = detritoService.atualizarDetrito(id, dto);
+        return ResponseEntity.ok(criarEntityModel(response));
+    }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(resource);
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Remover/Descartar Ameaça do Radar")
+    public ResponseEntity<Void> deletarDetrito(@PathVariable Long id) {
+        detritoService.deletarDetrito(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar detrito por ID", description = "Retorna as coordenadas, altitude, velocidade e risco de colisão de um fragmento específico")
+    @Operation(summary = "Buscar detrito por ID")
     public ResponseEntity<EntityModel<DetritoResponseDTO>> buscarPorId(@PathVariable Long id) {
         DetritoResponseDTO response = detritoService.buscarPorId(id);
-
-        EntityModel<DetritoResponseDTO> resource = EntityModel.of(response);
-        resource.add(linkTo(methodOn(DetritoEspacialController.class).buscarPorId(id)).withSelfRel());
-        resource.add(linkTo(methodOn(DetritoEspacialController.class).listarTodos()).withRel("todos-detritos"));
-
-        return ResponseEntity.ok(resource);
+        return ResponseEntity.ok(criarEntityModel(response));
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os detritos", description = "Retorna a lista completa de lixo espacial ativo sob o radar de ameaças")
+    @Operation(summary = "Listar todos os detritos")
     public ResponseEntity<CollectionModel<EntityModel<DetritoResponseDTO>>> listarTodos() {
         List<EntityModel<DetritoResponseDTO>> detritos = detritoService.listarTodos().stream()
-                .map(detrito -> EntityModel.of(detrito,
-                        linkTo(methodOn(DetritoEspacialController.class).buscarPorId(detrito.id())).withSelfRel(),
-                        linkTo(methodOn(DetritoEspacialController.class).listarTodos()).withRel("todos-detritos")))
+                .map(this::criarEntityModel)
                 .collect(Collectors.toList());
-
         CollectionModel<EntityModel<DetritoResponseDTO>> collectionModel = CollectionModel.of(detritos);
         collectionModel.add(linkTo(methodOn(DetritoEspacialController.class).listarTodos()).withSelfRel());
-
         return ResponseEntity.ok(collectionModel);
+    }
+
+    private EntityModel<DetritoResponseDTO> criarEntityModel(DetritoResponseDTO response) {
+        EntityModel<DetritoResponseDTO> resource = EntityModel.of(response);
+        resource.add(linkTo(methodOn(DetritoEspacialController.class).buscarPorId(response.id())).withSelfRel());
+        resource.add(linkTo(methodOn(DetritoEspacialController.class).atualizarDetrito(response.id(), null)).withRel("atualizar"));
+        resource.add(linkTo(methodOn(DetritoEspacialController.class).deletarDetrito(response.id())).withRel("deletar"));
+        resource.add(linkTo(methodOn(DetritoEspacialController.class).listarTodos()).withRel("todos-detritos"));
+        return resource;
     }
 }

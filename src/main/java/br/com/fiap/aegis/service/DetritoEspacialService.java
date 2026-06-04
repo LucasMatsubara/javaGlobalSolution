@@ -21,26 +21,42 @@ public class DetritoEspacialService {
 
     public DetritoResponseDTO registrarDetrito(DetritoRequestDTO dto) {
         DetritoEspacial detrito = new DetritoEspacial();
+        mapearCampos(detrito, dto);
+        DetritoEspacial detritoSalvo = detritoRepository.save(detrito);
+        return mapearParaResponseDTO(detritoSalvo);
+    }
+
+    public DetritoResponseDTO atualizarDetrito(Long id, DetritoRequestDTO dto) {
+        DetritoEspacial detrito = detritoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ameaça não encontrada com ID: " + id));
+        mapearCampos(detrito, dto);
+        DetritoEspacial detritoAtualizado = detritoRepository.save(detrito);
+        return mapearParaResponseDTO(detritoAtualizado);
+    }
+
+    public void deletarDetrito(Long id) {
+        DetritoEspacial detrito = detritoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ameaça não encontrada com ID: " + id));
+        detritoRepository.delete(detrito);
+    }
+
+    private void mapearCampos(DetritoEspacial detrito, DetritoRequestDTO dto) {
         detrito.setNome(dto.nome());
         detrito.setMassaKg(dto.massaKg());
         detrito.setVelocidade(dto.velocidade());
         detrito.setRiscoColisao(dto.riscoColisao());
         detrito.setOrigen(dto.origem());
 
-        CoordenadaOrbital coordenadas = new CoordenadaOrbital();
-        coordenadas.setEixoX(dto.coordenadas().eixoX());
-        coordenadas.setEixoY(dto.coordenadas().eixoY());
-        coordenadas.setAltitude(dto.coordenadas().altitude());
-        detrito.setCoordenadas(coordenadas);
-
-        DetritoEspacial detritoSalvo = detritoRepository.save(detrito);
-        return mapearParaResponseDTO(detritoSalvo);
+        if (detrito.getCoordenadas() == null) {
+            detrito.setCoordenadas(new CoordenadaOrbital());
+        }
+        detrito.getCoordenadas().setEixoX(dto.coordenadas().eixoX());
+        detrito.getCoordenadas().setEixoY(dto.coordenadas().eixoY());
+        detrito.getCoordenadas().setAltitude(dto.coordenadas().altitude());
     }
 
     public List<DetritoResponseDTO> listarTodos() {
-        return detritoRepository.findAll().stream()
-                .map(this::mapearParaResponseDTO)
-                .collect(Collectors.toList());
+        return detritoRepository.findAll().stream().map(this::mapearParaResponseDTO).collect(Collectors.toList());
     }
 
     public DetritoResponseDTO buscarPorId(Long id) {
@@ -55,15 +71,9 @@ public class DetritoEspacialService {
                 detrito.getCoordenadas().getEixoY(),
                 detrito.getCoordenadas().getAltitude()
         );
-
         return new DetritoResponseDTO(
-                detrito.getId(),
-                detrito.getNome(),
-                detrito.getMassaKg(),
-                detrito.getVelocidade(),
-                coordDTO,
-                detrito.getRiscoColisao(),
-                detrito.getOrigen()
+                detrito.getId(), detrito.getNome(), detrito.getMassaKg(),
+                detrito.getVelocidade(), coordDTO, detrito.getRiscoColisao(), detrito.getOrigen()
         );
     }
 }
