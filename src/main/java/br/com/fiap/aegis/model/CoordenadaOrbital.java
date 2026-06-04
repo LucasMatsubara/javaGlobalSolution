@@ -8,5 +8,5 @@ import lombok.Data;
 public class CoordenadaOrbital {
     private Double eixoX;
     private Double eixoY;
-    private Double eixoZ;
+    private Double altitude;
 }

@@ -3,17 +3,21 @@ package br.com.fiap.aegis.model;
 import br.com.fiap.aegis.enums.StatusOperacional;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(name = "TB_DRONE_LIMPEZA")
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class DroneLimpeza extends ObjetoOrbital {
+public class DroneLimpeza {
 
-    private Double nivelBateria;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String nome;
+
+    // bateria começando em 100%
+    private Double nivelBateria = 100.0;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private StatusOperacional statusOperacional;
+    private StatusOperacional statusOperacional = StatusOperacional.NA_BASE;
 }
