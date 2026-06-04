@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,6 +19,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,19 +38,25 @@ public class AutenticacaoController {
     private TokenService tokenService;
 
     @PostMapping("/login")
-    @Operation(summary = "Login de Utilizador", description = "Valida as credenciais e retorna o Token JWT")
-    public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data) {
+    @Operation(summary = "Login de Utilizador", description = "Valida as credenciais e retorna o Token JWT acompanhado de caminhos para a Dashboard")
+    public ResponseEntity<EntityModel<LoginResponseDTO>> login(@RequestBody @Valid AuthenticationDTO data) {
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(), data.senha());
         var auth = this.authenticationManager.authenticate(usernamePassword);
 
         var token = tokenService.gerarToken((Usuario) auth.getPrincipal());
+        LoginResponseDTO response = new LoginResponseDTO(token);
 
-        return ResponseEntity.ok(new LoginResponseDTO(token));
+        EntityModel<LoginResponseDTO> resource = EntityModel.of(response);
+        // vincula links dinâmicos para guiar o mobile após o login
+        resource.add(linkTo(methodOn(AutenticacaoController.class).login(data)).withSelfRel());
+        resource.add(linkTo(methodOn(DashboardController.class).obterResumo()).withRel("dashboard-resumo"));
+
+        return ResponseEntity.ok(resource);
     }
 
     @PostMapping("/register")
-    @Operation(summary = "Registar Utilizador", description = "Cria um novo utilizador com password encriptada")
-    public ResponseEntity register(@RequestBody @Valid RegisterDTO data) {
+    @Operation(summary = "Registar Utilizador", description = "Cria um novo utilizador com password encriptada e retorna link para direcionar ao login")
+    public ResponseEntity<EntityModel<String>> register(@RequestBody @Valid RegisterDTO data) {
         if (this.usuarioRepository.findByEmail(data.email()) != null) return ResponseEntity.badRequest().build();
 
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.senha());
@@ -54,6 +64,10 @@ public class AutenticacaoController {
 
         this.usuarioRepository.save(novoUsuario);
 
-        return ResponseEntity.ok().build();
+        EntityModel<String> resource = EntityModel.of("Usuário registrado com sucesso!");
+        resource.add(linkTo(methodOn(AutenticacaoController.class).register(data)).withSelfRel());
+        resource.add(linkTo(methodOn(AutenticacaoController.class).login(null)).withRel("fazer-login"));
+
+        return ResponseEntity.ok(resource);
     }
 }

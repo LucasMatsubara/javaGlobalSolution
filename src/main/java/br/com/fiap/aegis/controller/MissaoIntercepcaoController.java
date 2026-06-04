@@ -28,7 +28,7 @@ public class MissaoIntercepcaoController {
     private MissaoIntercepcaoService missaoService;
 
     @PostMapping("/despachar")
-    @Operation(summary = "Despachar um drone Chaser", description = "Autoriza o envio de um drone de limpeza autônomo para interceptar um detrito espacial crítico na órbita baixa (LEO)")
+    @Operation(summary = "Despachar um drone Chaser", description = "Autoriza o envio de um drone de limpeza para interceptar uma ameaça gerando links para chaves compostas")
     public ResponseEntity<EntityModel<MissaoResponseDTO>> despacharDrone(@Valid @RequestBody MissaoRequestDTO dto) {
         MissaoResponseDTO response = missaoService.despacharDrone(dto);
 
@@ -41,7 +41,7 @@ public class MissaoIntercepcaoController {
     }
 
     @GetMapping("/{droneId}/{detritoId}")
-    @Operation(summary = "Buscar Missão por ID Composto", description = "Retorna os detalhes de uma missão passando o ID do Drone e o ID do Detrito correspondente")
+    @Operation(summary = "Buscar Missão por ID Composto", description = "Retorna os detalhes de uma missão através do ID do Drone e do Detrito")
     public ResponseEntity<EntityModel<MissaoResponseDTO>> buscarPorIdComposto(@PathVariable Long droneId, @PathVariable Long detritoId) {
         MissaoResponseDTO response = missaoService.buscarPorIdComposto(droneId, detritoId);
 
@@ -53,7 +53,7 @@ public class MissaoIntercepcaoController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todas as missões orbitais", description = "Retorna o histórico completo de todas as missões de intercepção registadas na plataforma")
+    @Operation(summary = "Listar todas as missões orbitais", description = "Retorna a listagem completa injetando metadados de navegação HATEOAS")
     public ResponseEntity<CollectionModel<EntityModel<MissaoResponseDTO>>> listarTodas() {
         List<EntityModel<MissaoResponseDTO>> missoes = missaoService.listarTodas().stream()
                 .map(missao -> EntityModel.of(missao,

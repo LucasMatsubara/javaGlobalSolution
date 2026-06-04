@@ -28,7 +28,7 @@ public class EmpresaController {
     private EmpresaService empresaService;
 
     @PostMapping
-    @Operation(summary = "Cadastrar nova Empresa", description = "Regista uma nova empresa aeroespacial na plataforma")
+    @Operation(summary = "Cadastrar nova Empresa", description = "Regista uma nova empresa aeroespacial na plataforma com links dinâmicos")
     public ResponseEntity<EntityModel<EmpresaResponseDTO>> cadastrarEmpresa(@Valid @RequestBody EmpresaRequestDTO dto) {
         EmpresaResponseDTO response = empresaService.cadastrarEmpresa(dto);
 
@@ -40,7 +40,7 @@ public class EmpresaController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar Empresa por ID", description = "Retorna os detalhes de uma empresa específica")
+    @Operation(summary = "Buscar Empresa por ID", description = "Retorna os detalhes de uma empresa específica com suporte a hipermídia")
     public ResponseEntity<EntityModel<EmpresaResponseDTO>> buscarPorId(@PathVariable Long id) {
         EmpresaResponseDTO response = empresaService.buscarPorId(id);
 
@@ -52,7 +52,7 @@ public class EmpresaController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todas as Empresas", description = "Retorna o catálogo completo de empresas cadastradas")
+    @Operation(summary = "Listar todas as Empresas", description = "Retorna o catálogo completo de empresas vinculando navegação para cada recurso")
     public ResponseEntity<CollectionModel<EntityModel<EmpresaResponseDTO>>> listarTodas() {
         List<EntityModel<EmpresaResponseDTO>> empresas = empresaService.listarTodas().stream()
                 .map(empresa -> EntityModel.of(empresa,
