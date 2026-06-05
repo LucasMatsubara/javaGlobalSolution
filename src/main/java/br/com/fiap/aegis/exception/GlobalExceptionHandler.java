@@ -10,12 +10,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 1. Captura a nossa exceção de "Não Encontrado" (Erro 404)
+    // 1. Captura a exceção de "Não Encontrado" (Erro 404)
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErroPadraoDTO> handleResourceNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
         ErroPadraoDTO erro = new ErroPadraoDTO(
@@ -31,12 +30,12 @@ public class GlobalExceptionHandler {
     // 2. Captura os erros de Validação dos DTOs (Erro 400 - Bad Request)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErroPadraoDTO> handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
-        // Pega todos os campos que falharam no @NotBlank, @NotNull, etc.
+        // Mapeia o nome do campo + a mensagem de falha
         List<String> errosDeValidacao = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(FieldError::getDefaultMessage)
-                .collect(Collectors.toList());
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .toList();
 
         ErroPadraoDTO erro = new ErroPadraoDTO(
                 LocalDateTime.now(),
@@ -48,9 +47,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
     }
 
-    // 3. Captura a nossa regra de negócio do Enum (Erro 400 - Ex: tentar despachar drone em manutenção)
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ErroPadraoDTO> handleIllegalState(IllegalStateException ex, HttpServletRequest request) {
+    // 3. Captura regras de negócio e estados inválidos (Erro 400 - Ex: Bateria insuficiente)
+    @ExceptionHandler({IllegalStateException.class, IllegalArgumentException.class})
+    public ResponseEntity<ErroPadraoDTO> handleBusinessRules(RuntimeException ex, HttpServletRequest request) {
         ErroPadraoDTO erro = new ErroPadraoDTO(
                 LocalDateTime.now(),
                 HttpStatus.BAD_REQUEST.value(),
@@ -59,5 +58,18 @@ public class GlobalExceptionHandler {
                 null
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+    }
+
+    // 4. Rede de Segurança: Captura qualquer outro erro inesperado (Erro 500)
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErroPadraoDTO> handleGenericException(Exception ex, HttpServletRequest request) {
+        ErroPadraoDTO erro = new ErroPadraoDTO(
+                LocalDateTime.now(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Ocorreu um erro interno no servidor planetário: " + ex.getMessage(),
+                request.getRequestURI(),
+                null
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(erro);
     }
 }
