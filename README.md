@@ -151,7 +151,7 @@ Para facilitar os testes rápidos da banca avaliadora e a conteinerização em D
 
 ## 👥 Integrantes do Grupo Turma 2TDSPX
 
-** João Pedro Pereira Camilo       | RM: 562005
-** Lucas Matsubara Reis            | RM: 565020
-** Pamella Christiny Chaves Brito  | RM: 565206
+* João Pedro Pereira Camilo       | RM: 562005
+* Lucas Matsubara Reis            | RM: 565020
+* Pamella Christiny Chaves Brito  | RM: 565206
 
