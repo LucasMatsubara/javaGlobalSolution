@@ -7,42 +7,43 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.CollectionModel;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/satelites")
-@Tag(name = "Satélites Comerciais", description = "Endpoints para lançamento, monitoramento e gestão da base de satélites ativos")
+@Tag(name = "Satélites Comerciais", description = "Endpoints paginados para monitoramento da frota de satélites ativos")
 public class SateliteController {
 
     @Autowired
     private SateliteService sateliteService;
 
     @PostMapping
-    @Operation(summary = "Lançar novo Satélite", description = "Registra um novo satélite com telemetria inicial")
+    @Operation(summary = "Lançar novo Satélite")
     public ResponseEntity<EntityModel<SateliteResponseDTO>> cadastrarSatelite(@Valid @RequestBody SateliteRequestDTO dto) {
         SateliteResponseDTO response = sateliteService.cadastrarSatelite(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(criarEntityModel(response));
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Atualizar Satélite", description = "Altera os parâmetros de órbita ou status do satélite (Botão Editar do App)")
+    @Operation(summary = "Atualizar Satélite")
     public ResponseEntity<EntityModel<SateliteResponseDTO>> atualizarSatelite(@PathVariable Long id, @Valid @RequestBody SateliteRequestDTO dto) {
         SateliteResponseDTO response = sateliteService.atualizarSatelite(id, dto);
         return ResponseEntity.ok(criarEntityModel(response));
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Deletar/Remover Satélite", description = "Desativa e remove o satélite do radar (Botão Lixeira do App)")
+    @Operation(summary = "Deletar/Remover Satélite")
     public ResponseEntity<Void> deletarSatelite(@PathVariable Long id) {
         sateliteService.deletarSatelite(id);
         return ResponseEntity.noContent().build();
@@ -56,14 +57,20 @@ public class SateliteController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os Satélites")
-    public ResponseEntity<CollectionModel<EntityModel<SateliteResponseDTO>>> listarTodos() {
-        List<EntityModel<SateliteResponseDTO>> satelites = sateliteService.listarTodos().stream()
-                .map(this::criarEntityModel)
-                .collect(Collectors.toList());
-        CollectionModel<EntityModel<SateliteResponseDTO>> collectionModel = CollectionModel.of(satelites);
-        collectionModel.add(linkTo(methodOn(SateliteController.class).listarTodos()).withSelfRel());
-        return ResponseEntity.ok(collectionModel);
+    @Operation(summary = "Listar todos os Satélites com Paginação")
+    public ResponseEntity<PagedModel<EntityModel<SateliteResponseDTO>>> listarTodos(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            PagedResourcesAssembler<SateliteResponseDTO> pagedResourcesAssembler) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<SateliteResponseDTO> satelitesPaginados = sateliteService.listarTodosPaginado(pageable);
+
+        PagedModel<EntityModel<SateliteResponseDTO>> pagedModel = pagedResourcesAssembler.toModel(satelitesPaginados,
+                this::criarEntityModel
+        );
+
+        return ResponseEntity.ok(pagedModel);
     }
 
     private EntityModel<SateliteResponseDTO> criarEntityModel(SateliteResponseDTO response) {
@@ -71,7 +78,7 @@ public class SateliteController {
         resource.add(linkTo(methodOn(SateliteController.class).buscarPorId(response.id())).withSelfRel());
         resource.add(linkTo(methodOn(SateliteController.class).atualizarSatelite(response.id(), null)).withRel("atualizar"));
         resource.add(linkTo(methodOn(SateliteController.class).deletarSatelite(response.id())).withRel("deletar"));
-        resource.add(linkTo(methodOn(SateliteController.class).listarTodos()).withRel("todos-satelites"));
+        resource.add(linkTo(methodOn(SateliteController.class).listarTodos(0, 10, null)).withRel("todos-satelites"));
         return resource;
     }
 }

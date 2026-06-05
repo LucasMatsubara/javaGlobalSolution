@@ -6,10 +6,9 @@ import br.com.fiap.aegis.exception.ResourceNotFoundException;
 import br.com.fiap.aegis.model.DroneLimpeza;
 import br.com.fiap.aegis.repository.DroneLimpezaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class DroneLimpezaService {
@@ -44,8 +43,8 @@ public class DroneLimpezaService {
         logService.registarAcao(drone.getNome(), "Unidade de interceptação desativada e sucateada.", "ALTO");
     }
 
-    public List<DroneResponseDTO> listarTodos() {
-        return droneRepository.findAll().stream().map(this::mapearParaResponseDTO).collect(Collectors.toList());
+    public Page<DroneResponseDTO> listarTodosPaginado(Pageable pageable) {
+        return droneRepository.findAll(pageable).map(this::mapearParaResponseDTO);
     }
 
     public DroneResponseDTO buscarPorId(Long id) {

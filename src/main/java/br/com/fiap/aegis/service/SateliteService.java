@@ -11,10 +11,9 @@ import br.com.fiap.aegis.model.Satelite;
 import br.com.fiap.aegis.repository.EmpresaRepository;
 import br.com.fiap.aegis.repository.SateliteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class SateliteService {
@@ -85,8 +84,8 @@ public class SateliteService {
         logService.registarAcao(satelite.getNome(), "Satélite removido do monitoramento orbital.", "ALTO");
     }
 
-    public List<SateliteResponseDTO> listarTodos() {
-        return sateliteRepository.findAll().stream().map(this::mapearParaResponseDTO).collect(Collectors.toList());
+    public Page<SateliteResponseDTO> listarTodosPaginado(Pageable pageable) {
+        return sateliteRepository.findAll(pageable).map(this::mapearParaResponseDTO);
     }
 
     public SateliteResponseDTO buscarPorId(Long id) {

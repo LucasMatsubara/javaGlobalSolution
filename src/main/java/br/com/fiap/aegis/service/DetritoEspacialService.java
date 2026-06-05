@@ -8,10 +8,9 @@ import br.com.fiap.aegis.model.CoordenadaOrbital;
 import br.com.fiap.aegis.model.DetritoEspacial;
 import br.com.fiap.aegis.repository.DetritoEspacialRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class DetritoEspacialService {
@@ -55,8 +54,8 @@ public class DetritoEspacialService {
         detrito.getCoordenadas().setAltitude(dto.coordenadas().altitude());
     }
 
-    public List<DetritoResponseDTO> listarTodos() {
-        return detritoRepository.findAll().stream().map(this::mapearParaResponseDTO).collect(Collectors.toList());
+    public Page<DetritoResponseDTO> listarTodosPaginado(Pageable pageable) {
+        return detritoRepository.findAll(pageable).map(this::mapearParaResponseDTO);
     }
 
     public DetritoResponseDTO buscarPorId(Long id) {
