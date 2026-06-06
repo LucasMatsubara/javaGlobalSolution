@@ -45,7 +45,7 @@ public class SateliteService {
         coordenadas.setEixoX(dto.coordenadas().eixoX());
         coordenadas.setEixoY(dto.coordenadas().eixoY());
         coordenadas.setAltitude(dto.coordenadas().altitude());
-        satelite.setCoordenadas(coordenadas);
+        satelite.setCoordenada(coordenadas);
 
         Satelite sateliteSalvo = sateliteRepository.save(satelite);
         logService.registarAcao(sateliteSalvo.getNome(), "Lançamento orbital nominal.", "INFO");
@@ -68,9 +68,9 @@ public class SateliteService {
         satelite.setTipoBanda(dto.tipoBanda());
         satelite.setEmpresa(empresa);
 
-        satelite.getCoordenadas().setEixoX(dto.coordenadas().eixoX());
-        satelite.getCoordenadas().setEixoY(dto.coordenadas().eixoY());
-        satelite.getCoordenadas().setAltitude(dto.coordenadas().altitude());
+        satelite.getCoordenada().setEixoX(dto.coordenadas().eixoX());
+        satelite.getCoordenada().setEixoY(dto.coordenadas().eixoY());
+        satelite.getCoordenada().setAltitude(dto.coordenadas().altitude());
 
         Satelite sateliteAtualizado = sateliteRepository.save(satelite);
         logService.registarAcao(sateliteAtualizado.getNome(), "Dados operacionais atualizados.", "SISTEMA");
@@ -96,9 +96,9 @@ public class SateliteService {
 
     private SateliteResponseDTO mapearParaResponseDTO(Satelite satelite) {
         CoordenadaDTO coordDTO = new CoordenadaDTO(
-                satelite.getCoordenadas().getEixoX(),
-                satelite.getCoordenadas().getEixoY(),
-                satelite.getCoordenadas().getAltitude()
+                satelite.getCoordenada().getEixoX(),
+                satelite.getCoordenada().getEixoY(),
+                satelite.getCoordenada().getAltitude()
         );
         EmpresaResponseDTO empresaDTO = new EmpresaResponseDTO(
                 satelite.getEmpresa().getId(),

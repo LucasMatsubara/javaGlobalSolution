@@ -1,21 +1,21 @@
 package br.com.fiap.aegis.model;
 
-import jakarta.persistence.*;
-import lombok.Data;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
+import lombok.Getter;
+import lombok.Setter;
 
-@Entity
-@Table(name = "TB_OBJETO_ORBITAL")
-@Inheritance(strategy = InheritanceType.JOINED)
-@Data
+@Getter
+@Setter
+@MappedSuperclass
 public abstract class ObjetoOrbital {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "eixox", nullable = false)
+    private Double eixoX;
 
-    private String nome;
-    private Double massaKg;
+    @Column(name = "eixoy", nullable = false)
+    private Double eixoY;
 
-    @Embedded
-    private CoordenadaOrbital coordenadas;
+    @Column(name = "altitude", nullable = false)
+    private Double altitude;
 }

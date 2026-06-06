@@ -9,5 +9,5 @@ public record DetritoResponseDTO(
         Double velocidade,
         CoordenadaDTO coordenadas,
         RiscoColisao riscoColisao,
-        String origen
+        String origem
 ) {}

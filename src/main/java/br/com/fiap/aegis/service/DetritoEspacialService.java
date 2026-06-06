@@ -44,14 +44,15 @@ public class DetritoEspacialService {
         detrito.setMassaKg(dto.massaKg());
         detrito.setVelocidade(dto.velocidade());
         detrito.setRiscoColisao(dto.riscoColisao());
-        detrito.setOrigen(dto.origem());
+        detrito.setOrigem(dto.origem());
 
-        if (detrito.getCoordenadas() == null) {
-            detrito.setCoordenadas(new CoordenadaOrbital());
+        if (detrito.getCoordenada() == null) {
+            detrito.setCoordenada(new CoordenadaOrbital());
         }
-        detrito.getCoordenadas().setEixoX(dto.coordenadas().eixoX());
-        detrito.getCoordenadas().setEixoY(dto.coordenadas().eixoY());
-        detrito.getCoordenadas().setAltitude(dto.coordenadas().altitude());
+
+        detrito.getCoordenada().setEixoX(dto.coordenadas().eixoX());
+        detrito.getCoordenada().setEixoY(dto.coordenadas().eixoY());
+        detrito.getCoordenada().setAltitude(dto.coordenadas().altitude());
     }
 
     public Page<DetritoResponseDTO> listarTodosPaginado(Pageable pageable) {
@@ -65,14 +66,24 @@ public class DetritoEspacialService {
     }
 
     private DetritoResponseDTO mapearParaResponseDTO(DetritoEspacial detrito) {
-        CoordenadaDTO coordDTO = new CoordenadaDTO(
-                detrito.getCoordenadas().getEixoX(),
-                detrito.getCoordenadas().getEixoY(),
-                detrito.getCoordenadas().getAltitude()
-        );
+        CoordenadaDTO coordDTO = null;
+
+        if (detrito.getCoordenada() != null) {
+            coordDTO = new CoordenadaDTO(
+                    detrito.getCoordenada().getEixoX(),
+                    detrito.getCoordenada().getEixoY(),
+                    detrito.getCoordenada().getAltitude()
+            );
+        }
+
         return new DetritoResponseDTO(
-                detrito.getId(), detrito.getNome(), detrito.getMassaKg(),
-                detrito.getVelocidade(), coordDTO, detrito.getRiscoColisao(), detrito.getOrigen()
+                detrito.getId(),
+                detrito.getNome(),
+                detrito.getMassaKg(),
+                detrito.getVelocidade(),
+                coordDTO,
+                detrito.getRiscoColisao(),
+                detrito.getOrigem()
         );
     }
 }

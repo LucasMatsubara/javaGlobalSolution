@@ -2,6 +2,7 @@ package br.com.fiap.aegis.model;
 
 import br.com.fiap.aegis.enums.UserRole;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "TB_USUARIO")
 @Data
@@ -24,6 +29,9 @@ public class Usuario implements UserDetails {
     private Long id;
 
     private String email;
+
+    @NotBlank
+    @Column(name = "senha", nullable = false, length = 255)
     private String senha;
 
     @Enumerated(EnumType.STRING)

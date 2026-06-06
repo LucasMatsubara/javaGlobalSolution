@@ -27,21 +27,33 @@ public class SecurityFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var token = this.recuperarToken(request);
-        if (token != null) {
-            var email = tokenService.validarToken(token);
-            UserDetails usuario = usuarioRepository.findByEmail(email);
 
-            if (usuario != null) {
-                var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+        if (token != null) {
+            try {
+                var login = tokenService.validarToken(token);
+                if (login != null && !login.isEmpty()) {
+                    UserDetails user = usuarioRepository.findByEmail(login);
+
+                    if (user != null) {
+                        var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    }
+                }
+            } catch (Exception e) {
+                // Se o token for inválido ou estiver expirado, limpa o contexto de segurança de forma segura
+                SecurityContextHolder.clearContext();
             }
         }
+
+        // Garante que a requisição CONTINUE fluindo para o SecurityConfigurations avaliar os permitAll()
         filterChain.doFilter(request, response);
     }
 
     private String recuperarToken(HttpServletRequest request) {
         var authHeader = request.getHeader("Authorization");
-        if (authHeader == null) return null;
-        return authHeader.replace("Bearer ", "");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return null;
+        }
+        return authHeader.substring(7); // Remove o prefixo "Bearer " com segurança
     }
 }

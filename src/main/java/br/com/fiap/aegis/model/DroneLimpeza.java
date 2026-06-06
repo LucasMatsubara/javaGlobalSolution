@@ -3,7 +3,11 @@ package br.com.fiap.aegis.model;
 import br.com.fiap.aegis.enums.StatusOperacional;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "TB_DRONE_LIMPEZA")
 @Data

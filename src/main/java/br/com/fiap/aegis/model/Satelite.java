@@ -1,38 +1,48 @@
 package br.com.fiap.aegis.model;
 
 import br.com.fiap.aegis.enums.StatusSatelite;
+import br.com.fiap.aegis.enums.TipoBanda;
 import jakarta.persistence.*;
-import lombok.Data;
-
 import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
-@Table(name = "TB_SATELITE")
-@Data
+@Table(name = "tb_satelite")
 public class Satelite {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "nome", nullable = false)
     private String nome;
 
-    private String noradId;
+    @Column(name = "norad_id", nullable = false, unique = true)
+    private Long noradId;
+
+    @Column(name = "inclinacao", nullable = false)
     private Double inclinacao;
+
+    @Column(name = "data_lancamento")
     private LocalDate dataLancamento;
 
-    @Enumerated(EnumType.STRING)
-    private StatusSatelite statusSatelite = StatusSatelite.ATIVO;
+    @Column(name = "status_satelite")
+    private StatusSatelite statusSatelite;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_banda")
+    private TipoBanda tipoBanda;
+
+    @Column(name = "massa_kg")
     private Double massaKg;
-    private String tipoBanda;
 
     @Embedded
-    private CoordenadaOrbital coordenadas;
+    private CoordenadaOrbital coordenada;
 
-    // N:1 (vários satélites pertencem a uma única empresa)
     @ManyToOne
     @JoinColumn(name = "empresa_id")
     private Empresa empresa;
 }
-
