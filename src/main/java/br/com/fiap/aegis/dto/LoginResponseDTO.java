@@ -1,3 +1,7 @@
 package br.com.fiap.aegis.dto;
 
-public record LoginResponseDTO(String token) {}
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record LoginResponseDTO(
+        @JsonProperty("token") String token
+) {}

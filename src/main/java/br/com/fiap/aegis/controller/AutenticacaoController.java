@@ -3,6 +3,7 @@ package br.com.fiap.aegis.controller;
 import br.com.fiap.aegis.dto.AuthenticationDTO;
 import br.com.fiap.aegis.dto.LoginResponseDTO;
 import br.com.fiap.aegis.dto.RegisterDTO;
+import br.com.fiap.aegis.dto.RegisterResponseDTO;
 import br.com.fiap.aegis.model.Usuario;
 import br.com.fiap.aegis.repository.UsuarioRepository;
 import br.com.fiap.aegis.service.TokenService;
@@ -47,8 +48,7 @@ public class AutenticacaoController {
         LoginResponseDTO response = new LoginResponseDTO(token);
 
         EntityModel<LoginResponseDTO> resource = EntityModel.of(response);
-        // vincula links dinâmicos para guiar o mobile após o login
-        resource.add(linkTo(methodOn(AutenticacaoController.class).login(data)).withSelfRel());
+        resource.add(linkTo(AutenticacaoController.class).slash("login").withSelfRel());
         resource.add(linkTo(methodOn(DashboardController.class).obterResumo()).withRel("dashboard-resumo"));
 
         return ResponseEntity.ok(resource);
@@ -56,18 +56,15 @@ public class AutenticacaoController {
 
     @PostMapping("/register")
     @Operation(summary = "Registar Utilizador", description = "Cria um novo utilizador com password encriptada e retorna link para direcionar ao login")
-    public ResponseEntity<EntityModel<String>> register(@RequestBody @Valid RegisterDTO data) {
-        if (this.usuarioRepository.findByEmail(data.email()) != null) return ResponseEntity.badRequest().build();
+    public ResponseEntity<RegisterResponseDTO> register(@RequestBody @Valid RegisterDTO data) {
+        if (this.usuarioRepository.findByEmail(data.email()) != null) {
+            return ResponseEntity.badRequest().build();
+        }
 
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.senha());
         Usuario novoUsuario = new Usuario(null, data.email(), encryptedPassword, data.role());
-
         this.usuarioRepository.save(novoUsuario);
 
-        EntityModel<String> resource = EntityModel.of("Usuário registrado com sucesso!");
-        resource.add(linkTo(methodOn(AutenticacaoController.class).register(data)).withSelfRel());
-        resource.add(linkTo(methodOn(AutenticacaoController.class).login(null)).withRel("fazer-login"));
-
-        return ResponseEntity.ok(resource);
+        return ResponseEntity.ok(new RegisterResponseDTO("Usuário registrado com sucesso!", "/api/auth/login"));
     }
 }

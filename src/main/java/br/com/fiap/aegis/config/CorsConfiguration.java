@@ -9,9 +9,14 @@ public class CorsConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**") // libera todas as rotas API
-                .allowedOrigins("*") // em produção, trocar o "*" pelo domínio do mobile
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "TRACE", "CONNECT") // métodos permitidos
-                .allowedHeaders("*"); // libera todos os cabeçalhos, incluindo o Authorization com JWT
+        registry.addMapping("/**") // Libera todas as rotas da API
+                // 🌐 Troca de allowedOrigins para allowedOriginPatterns para aceitar credenciais
+                .allowedOriginPatterns("*")
+                // ⚡ Métodos permitidos organizados
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD")
+                // 📥 Libera todos os cabeçalhos (inclusive Authorization do JWT)
+                .allowedHeaders("*")
+                // 🔑 Permite envio de cookies e credenciais com segurança
+                .allowCredentials(true);
     }
 }
