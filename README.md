@@ -84,6 +84,13 @@ Para facilitar os testes rápidos da banca avaliadora e a conteinerização em D
 * `PUT /api/usuarios/{id}` - Edição de dados cadastrais e senha.
 * `DELETE /api/usuarios/{id}` - Encerramento e exclusão de conta.
 
+### Empresas Aeroespaciais (Protegido por Token JWT)
+* `GET /api/empresas` - Listagem do catálogo completo de empresas com links HATEOAS.
+* `GET /api/empresas/{id}` - Detalhamento de uma empresa específica.
+* `POST /api/empresas` - Registro de uma nova corporação aeroespacial.
+* `PUT /api/empresas/{id}` - Atualização de dados cadastrais (ex: Nome, CNPJ).
+* `DELETE /api/empresas/{id}` - Remoção definitiva da empresa e de seus satélites vinculados.
+
 ### Satélites Comerciais (Protegido por Token JWT)
 * `GET /api/satelites` - Listagem paginada de satélites com links HATEOAS.
 * `GET /api/satelites/{id}` - Telemetria completa do satélite selecionado.
@@ -151,7 +158,6 @@ Para facilitar os testes rápidos da banca avaliadora e a conteinerização em D
 
 ## 👥 Integrantes do Grupo Turma 2TDSPX
 
-* João Pedro Pereira Camilo       | RM: 562005
-* Lucas Matsubara Reis            | RM: 565020
-* Pamella Christiny Chaves Brito  | RM: 565206
-
+* João Pedro Pereira Camilo        | RM: 562005
+* Lucas Matsubara Reis             | RM: 565020
+* Pamella Christiny Chaves Brito   | RM: 565206
