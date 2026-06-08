@@ -62,10 +62,7 @@ public class AutenticacaoController {
         }
 
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.senha());
-        Usuario novoUsuario = new Usuario();
-        novoUsuario.setEmail(data.email());
-        novoUsuario.setSenha(encryptedPassword);
-        novoUsuario.setRole(data.role());
+        Usuario novoUsuario = new Usuario(null, data.email(), encryptedPassword, data.role());
         this.usuarioRepository.save(novoUsuario);
 
         return ResponseEntity.ok(new RegisterResponseDTO("Usuário registrado com sucesso!", "/api/auth/login"));
