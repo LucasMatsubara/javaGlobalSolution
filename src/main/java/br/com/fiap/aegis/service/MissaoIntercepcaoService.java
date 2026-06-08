@@ -3,7 +3,10 @@ package br.com.fiap.aegis.service;
 import br.com.fiap.aegis.dto.MissaoRequestDTO;
 import br.com.fiap.aegis.dto.MissaoResponseDTO;
 import br.com.fiap.aegis.enums.RiscoColisao;
+import br.com.fiap.aegis.enums.StatusMissao;
 import br.com.fiap.aegis.enums.StatusOperacional;
+import br.com.fiap.aegis.enums.TipoBanda;
+import br.com.fiap.aegis.enums.TipoDetrito;
 import br.com.fiap.aegis.exception.ResourceNotFoundException;
 import br.com.fiap.aegis.model.DetritoEspacial;
 import br.com.fiap.aegis.model.DroneLimpeza;
@@ -42,25 +45,27 @@ public class MissaoIntercepcaoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Detrito não encontrado com ID: " + dto.detritoId()));
 
         if (drone.getStatusOperacional() != StatusOperacional.NA_BASE) {
-            throw new IllegalStateException("O Drone selecionado não está disponível. Status atual: " + drone.getStatusOperacional());
+            throw new IllegalStateException("OPERAÇÃO NEGADA: Não há drones disponíveis na base! Fabrique mais ou aguarde o retorno.");
         }
 
-        // Regra de Consumo Baseada no Enum RiscoColisao
-        double consumo;
-        RiscoColisao risco = detrito.getRiscoColisao();
+        // Verifica se já existe missão ativa para este drone
+        boolean droneJaEmMissao = missaoRepository.findByDroneId(drone.getId()).stream()
+                .anyMatch(m -> m.getStatusMissao() == StatusMissao.EM_ANDAMENTO
+                        || m.getStatusMissao() == StatusMissao.AUTORIZADA);
+        if (droneJaEmMissao) {
+            throw new IllegalStateException("OPERAÇÃO NEGADA: Este drone já está associado a uma missão ativa.");
+        }
 
-        if (risco == RiscoColisao.MODERADO) {
-            consumo = 20.0;
-        } else if (risco == RiscoColisao.ALTO) {
-            consumo = 50.0;
-        } else if (risco == RiscoColisao.CRITICO) {
-            consumo = 80.0;
-        } else {
-            consumo = 10.0; // BAIXO
+        // Consumo base por nível de risco
+        double consumo = calcularConsumoPorRisco(detrito.getRiscoColisao());
+
+        // Penalidade de 12% se a banda não for ideal para o tipo de detrito
+        if (!bandaIdealParaDetrito(drone.getTipoBanda(), detrito.getTipoDetrito())) {
+            consumo += 12.0;
         }
 
         if (drone.getNivelBateria() < consumo) {
-            throw new IllegalStateException("Drone com bateria insuficiente para esta missão. Requer: " + consumo + "%, Atual: " + drone.getNivelBateria() + "%");
+            throw new IllegalStateException("Drone com bateria insuficiente. Requer: " + consumo + "%, Atual: " + drone.getNivelBateria() + "%");
         }
 
         drone.setNivelBateria(drone.getNivelBateria() - consumo);
@@ -72,7 +77,7 @@ public class MissaoIntercepcaoService {
         missao.setId(missaoId);
         missao.setDrone(drone);
         missao.setDetrito(detrito);
-        missao.setStatusMissao(dto.statusMissao());
+        missao.setStatusMissao(StatusMissao.EM_ANDAMENTO);
         missao.setDataMissao(LocalDateTime.now());
 
         MissaoIntercepcao missaoSalva = missaoRepository.save(missao);
@@ -80,16 +85,67 @@ public class MissaoIntercepcaoService {
         logService.registarAcao(
                 drone.getNome(),
                 "Drone despachado para interceptar " + detrito.getNome() + ".",
-                risco.name()
-        );
-
-        logService.registarAcao(
-                detrito.getNome(),
-                "Ameaça neutralizada com sucesso por " + drone.getNome() + ".",
-                "INFO"
+                detrito.getRiscoColisao().name()
         );
 
         return mapearParaResponseDTO(missaoSalva);
+    }
+
+    private double calcularConsumoPorRisco(RiscoColisao risco) {
+        return switch (risco) {
+            case BAIXO -> 10.0;
+            case MODERADO -> 25.0;
+            case ALTO -> 40.0;
+            case CRITICO -> 75.0;
+        };
+    }
+
+    private boolean bandaIdealParaDetrito(TipoBanda banda, TipoDetrito tipo) {
+        if (tipo == null || banda == null) return true;
+        return switch (tipo) {
+            case FRAGMENTO_FOGUETE -> banda == TipoBanda.BANDA_KA;
+            case SATELITE_INATIVO  -> banda == TipoBanda.BANDA_KU;
+            case PAINEL_SOLAR      -> banda == TipoBanda.BANDA_C;
+            case DEBRIS_METALICO   -> banda == TipoBanda.BANDA_S;
+            case MICRODEBRIS       -> banda == TipoBanda.BANDA_L;
+        };
+    }
+
+    public MissaoResponseDTO lancarMissao(Long droneId, Long detritoId) {
+        MissaoId id = new MissaoId(droneId, detritoId);
+        MissaoIntercepcao missao = missaoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Missão não encontrada."));
+
+        DroneLimpeza drone = missao.getDrone();
+
+        if (drone.getStatusOperacional() != StatusOperacional.NA_BASE) {
+            throw new IllegalStateException("OPERAÇÃO NEGADA: Não há drones disponíveis na base! Fabrique mais ou aguarde o retorno.");
+        }
+
+        double consumo = calcularConsumoPorRisco(missao.getDetrito().getRiscoColisao());
+
+        if (!bandaIdealParaDetrito(drone.getTipoBanda(), missao.getDetrito().getTipoDetrito())) {
+            consumo += 12.0;
+        }
+
+        if (drone.getNivelBateria() < consumo) {
+            throw new IllegalStateException("Drone com bateria insuficiente. Requer: " + consumo + "%, Atual: " + drone.getNivelBateria() + "%");
+        }
+
+        drone.setNivelBateria(drone.getNivelBateria() - consumo);
+        drone.setStatusOperacional(StatusOperacional.INTERCEPTANDO);
+        droneRepository.save(drone);
+
+        missao.setStatusMissao(StatusMissao.EM_ANDAMENTO);
+        missaoRepository.save(missao);
+
+        logService.registarAcao(
+                drone.getNome(),
+                "Drone despachado para interceptar " + missao.getDetrito().getNome() + ".",
+                missao.getDetrito().getRiscoColisao().name()
+        );
+
+        return mapearParaResponseDTO(missao);
     }
 
     public List<MissaoResponseDTO> listarTodas() {
@@ -112,7 +168,9 @@ public class MissaoIntercepcaoService {
                 missao.getDrone().getNome(),
                 missao.getDetrito().getNome(),
                 missao.getDataMissao(),
-                missao.getStatusMissao()
+                missao.getStatusMissao(),
+                missao.getDrone().getTipoBanda(),
+                missao.getDetrito().getTipoDetrito()
         );
     }
 }

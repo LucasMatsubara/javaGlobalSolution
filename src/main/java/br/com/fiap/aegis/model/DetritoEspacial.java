@@ -1,12 +1,11 @@
 package br.com.fiap.aegis.model;
 
 import br.com.fiap.aegis.enums.RiscoColisao;
+import br.com.fiap.aegis.enums.TipoDetrito;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 @Entity
 @Table(name = "tb_detrito_espacial")
 public class DetritoEspacial {
@@ -24,8 +23,13 @@ public class DetritoEspacial {
     @Column(name = "velocidade")
     private Double velocidade;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "risco_colisao")
     private RiscoColisao riscoColisao;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_detrito")
+    private TipoDetrito tipoDetrito;
 
     @Column(name = "origem")
     private String origem;

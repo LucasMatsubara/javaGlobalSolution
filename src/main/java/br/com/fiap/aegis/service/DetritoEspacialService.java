@@ -44,6 +44,7 @@ public class DetritoEspacialService {
         detrito.setMassaKg(dto.massaKg());
         detrito.setVelocidade(dto.velocidade());
         detrito.setRiscoColisao(dto.riscoColisao());
+        detrito.setTipoDetrito(dto.tipoDetrito());
         detrito.setOrigem(dto.origem());
 
         if (detrito.getCoordenada() == null) {
@@ -83,6 +84,7 @@ public class DetritoEspacialService {
                 detrito.getVelocidade(),
                 coordDTO,
                 detrito.getRiscoColisao(),
+                detrito.getTipoDetrito(),
                 detrito.getOrigem()
         );
     }

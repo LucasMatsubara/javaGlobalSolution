@@ -11,7 +11,7 @@ import java.time.LocalDate;
 
 public record SateliteRequestDTO(
         @NotBlank(message = "O nome do satélite é obrigatório") String nome,
-        @NotBlank(message = "O NORAD ID é obrigatório") Long noradId,
+        @NotNull(message = "O NORAD ID é obrigatório") Long noradId,
         @NotNull(message = "A inclinação é obrigatória") Double inclinacao,
         @NotNull(message = "A data de lançamento é obrigatória") LocalDate dataLancamento,
         @NotNull(message = "O status do satélite é obrigatório") StatusSatelite statusSatelite,

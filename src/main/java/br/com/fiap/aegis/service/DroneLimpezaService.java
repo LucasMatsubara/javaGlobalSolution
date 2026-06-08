@@ -3,6 +3,7 @@ package br.com.fiap.aegis.service;
 import br.com.fiap.aegis.dto.DroneRequestDTO;
 import br.com.fiap.aegis.dto.DroneResponseDTO;
 import br.com.fiap.aegis.exception.ResourceNotFoundException;
+import br.com.fiap.aegis.enums.TipoBanda;
 import br.com.fiap.aegis.model.DroneLimpeza;
 import br.com.fiap.aegis.repository.DroneLimpezaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ public class DroneLimpezaService {
     public DroneResponseDTO cadastrarDrone(DroneRequestDTO dto) {
         DroneLimpeza drone = new DroneLimpeza();
         drone.setNome(dto.nome());
+        drone.setTipoBanda(dto.tipoBanda() != null ? dto.tipoBanda() : TipoBanda.BANDA_KA);
         DroneLimpeza droneSalvo = droneRepository.save(drone);
         logService.registarAcao(droneSalvo.getNome(), "Nova unidade de interceptação fabricada.", "SISTEMA");
         return mapearParaResponseDTO(droneSalvo);
@@ -31,6 +33,7 @@ public class DroneLimpezaService {
         DroneLimpeza drone = droneRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Drone não encontrado com ID: " + id));
         drone.setNome(dto.nome());
+        if (dto.tipoBanda() != null) drone.setTipoBanda(dto.tipoBanda());
         DroneLimpeza droneAtualizado = droneRepository.save(drone);
         logService.registarAcao(droneAtualizado.getNome(), "Designação da unidade alterada.", "SISTEMA");
         return mapearParaResponseDTO(droneAtualizado);
@@ -54,6 +57,12 @@ public class DroneLimpezaService {
     }
 
     private DroneResponseDTO mapearParaResponseDTO(DroneLimpeza drone) {
-        return new DroneResponseDTO(drone.getId(), drone.getNome(), drone.getNivelBateria(), drone.getStatusOperacional());
+        return new DroneResponseDTO(
+                drone.getId(),
+                drone.getNome(),
+                drone.getNivelBateria(),
+                drone.getStatusOperacional(),
+                drone.getTipoBanda()
+        );
     }
 }

@@ -1,13 +1,10 @@
 package br.com.fiap.aegis.model;
 
 import br.com.fiap.aegis.enums.StatusOperacional;
+import br.com.fiap.aegis.enums.TipoBanda;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "TB_DRONE_LIMPEZA")
 @Data
@@ -19,9 +16,12 @@ public class DroneLimpeza {
 
     private String nome;
 
-    // bateria começando em 100%
     private Double nivelBateria = 100.0;
 
     @Enumerated(EnumType.STRING)
     private StatusOperacional statusOperacional = StatusOperacional.NA_BASE;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_banda")
+    private TipoBanda tipoBanda = TipoBanda.BANDA_KA;
 }

@@ -1,6 +1,7 @@
 package br.com.fiap.aegis.dto;
 
 import br.com.fiap.aegis.enums.RiscoColisao;
+import br.com.fiap.aegis.enums.TipoDetrito;
 
 public record DetritoResponseDTO(
         Long id,
@@ -9,5 +10,6 @@ public record DetritoResponseDTO(
         Double velocidade,
         CoordenadaDTO coordenadas,
         RiscoColisao riscoColisao,
+        TipoDetrito tipoDetrito,
         String origem
 ) {}

@@ -31,7 +31,11 @@ public class DashboardService {
 
     public DashboardResponseDTO obterResumoDashboard() {
         long satelitesAtivos = sateliteRepository.countByStatusSatelite(StatusSatelite.ATIVO);
-        long dronesEmMissao = droneRepository.countByStatusOperacional(StatusOperacional.INTERCEPTANDO);
+
+        // Conta drones em qualquer fase de missão ativa
+        long dronesEmMissao = droneRepository.countByStatusOperacional(StatusOperacional.INTERCEPTANDO)
+                + droneRepository.countByStatusOperacional(StatusOperacional.RECOLHENDO_LIXO)
+                + droneRepository.countByStatusOperacional(StatusOperacional.RETORNANDO);
 
         long ameacasCriticas = detritoRepository.countByRiscoColisao(RiscoColisao.CRITICO);
         long ameacasAltas = detritoRepository.countByRiscoColisao(RiscoColisao.ALTO);

@@ -4,11 +4,9 @@ import br.com.fiap.aegis.enums.StatusSatelite;
 import br.com.fiap.aegis.enums.TipoBanda;
 import jakarta.persistence.*;
 import java.time.LocalDate;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 @Entity
 @Table(name = "tb_satelite")
 public class Satelite {

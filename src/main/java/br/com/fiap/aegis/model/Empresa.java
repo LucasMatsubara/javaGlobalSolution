@@ -3,11 +3,7 @@ package br.com.fiap.aegis.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.util.List;
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "TB_EMPRESA")
 @Data
