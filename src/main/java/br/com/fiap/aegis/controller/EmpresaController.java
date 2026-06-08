@@ -65,4 +65,24 @@ public class EmpresaController {
 
         return ResponseEntity.ok(collectionModel);
     }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Atualizar Empresa", description = "Atualiza os dados cadastrais de uma empresa aeroespacial existente")
+    public ResponseEntity<EntityModel<EmpresaResponseDTO>> atualizarEmpresa(@PathVariable Long id, @Valid @RequestBody EmpresaRequestDTO dto) {
+        EmpresaResponseDTO response = empresaService.atualizarEmpresa(id, dto);
+
+        EntityModel<EmpresaResponseDTO> resource = EntityModel.of(response);
+        resource.add(linkTo(methodOn(EmpresaController.class).buscarPorId(id)).withSelfRel());
+        resource.add(linkTo(methodOn(EmpresaController.class).listarTodas()).withRel("todas-empresas"));
+
+        return ResponseEntity.ok(resource);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir Empresa", description = "Remove permanentemente uma empresa e seus vínculos da base de dados")
+    public ResponseEntity<Void> excluirEmpresa(@PathVariable Long id) {
+        empresaService.excluirEmpresa(id);
+
+        return ResponseEntity.noContent().build();
+    }
 }

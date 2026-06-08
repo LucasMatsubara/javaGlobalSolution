@@ -39,6 +39,24 @@ public class EmpresaService {
         return mapearParaResponseDTO(empresa);
     }
 
+    public EmpresaResponseDTO atualizarEmpresa(Long id, EmpresaRequestDTO dto) {
+        Empresa empresa = empresaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrada com o ID: " + id));
+
+        empresa.setNome(dto.nome());
+        empresa.setCnpj(dto.cnpj());
+
+        Empresa empresaAtualizada = empresaRepository.save(empresa);
+        return mapearParaResponseDTO(empresaAtualizada);
+    }
+
+    public void excluirEmpresa(Long id) {
+        Empresa empresa = empresaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrada com o ID: " + id));
+
+        empresaRepository.delete(empresa);
+    }
+
     private EmpresaResponseDTO mapearParaResponseDTO(Empresa empresa) {
         return new EmpresaResponseDTO(
                 empresa.getId(),
