@@ -2,6 +2,7 @@ package br.com.fiap.aegis.controller;
 
 import br.com.fiap.aegis.dto.DetritoRequestDTO;
 import br.com.fiap.aegis.dto.DetritoResponseDTO;
+import br.com.fiap.aegis.security.EmpresaResolver;
 import br.com.fiap.aegis.service.DetritoEspacialService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,6 +28,10 @@ public class DetritoEspacialController {
 
     @Autowired
     private DetritoEspacialService detritoService;
+
+    // ✅ CORREÇÃO 2: injeta o resolver para saber qual empresa está logada
+    @Autowired
+    private EmpresaResolver empresaResolver;
 
     @PostMapping
     @Operation(summary = "Registrar novo detrito espacial")
@@ -57,18 +62,22 @@ public class DetritoEspacialController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os detritos com Paginação")
+    @Operation(summary = "Listar detritos — filtrado pela empresa do usuário logado")
     public ResponseEntity<PagedModel<EntityModel<DetritoResponseDTO>>> listarTodos(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             PagedResourcesAssembler<DetritoResponseDTO> pagedResourcesAssembler) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<DetritoResponseDTO> detritosPaginados = detritoService.listarTodosPaginado(pageable);
+        Long empresaId = empresaResolver.getEmpresaIdDoUsuarioLogado();
 
-        PagedModel<EntityModel<DetritoResponseDTO>> pagedModel = pagedResourcesAssembler.toModel(detritosPaginados,
-                this::criarEntityModel
-        );
+        // ✅ CORREÇÃO 2: cada empresa só vê seus próprios detritos
+        Page<DetritoResponseDTO> detritosPaginados = (empresaId != null)
+                ? detritoService.listarPorEmpresa(empresaId, pageable)
+                : detritoService.listarTodosPaginado(pageable);
+
+        PagedModel<EntityModel<DetritoResponseDTO>> pagedModel =
+                pagedResourcesAssembler.toModel(detritosPaginados, this::criarEntityModel);
 
         return ResponseEntity.ok(pagedModel);
     }

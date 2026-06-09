@@ -21,16 +21,14 @@ public class DetritoEspacialService {
     public DetritoResponseDTO registrarDetrito(DetritoRequestDTO dto) {
         DetritoEspacial detrito = new DetritoEspacial();
         mapearCampos(detrito, dto);
-        DetritoEspacial detritoSalvo = detritoRepository.save(detrito);
-        return mapearParaResponseDTO(detritoSalvo);
+        return mapearParaResponseDTO(detritoRepository.save(detrito));
     }
 
     public DetritoResponseDTO atualizarDetrito(Long id, DetritoRequestDTO dto) {
         DetritoEspacial detrito = detritoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ameaça não encontrada com ID: " + id));
         mapearCampos(detrito, dto);
-        DetritoEspacial detritoAtualizado = detritoRepository.save(detrito);
-        return mapearParaResponseDTO(detritoAtualizado);
+        return mapearParaResponseDTO(detritoRepository.save(detrito));
     }
 
     public void deletarDetrito(Long id) {
@@ -50,7 +48,6 @@ public class DetritoEspacialService {
         if (detrito.getCoordenada() == null) {
             detrito.setCoordenada(new CoordenadaOrbital());
         }
-
         detrito.getCoordenada().setEixoX(dto.coordenadas().eixoX());
         detrito.getCoordenada().setEixoY(dto.coordenadas().eixoY());
         detrito.getCoordenada().setAltitude(dto.coordenadas().altitude());
@@ -60,15 +57,18 @@ public class DetritoEspacialService {
         return detritoRepository.findAll(pageable).map(this::mapearParaResponseDTO);
     }
 
+    // ✅ CORREÇÃO 2: listagem isolada por empresa
+    public Page<DetritoResponseDTO> listarPorEmpresa(Long empresaId, Pageable pageable) {
+        return detritoRepository.findByEmpresaId(empresaId, pageable).map(this::mapearParaResponseDTO);
+    }
+
     public DetritoResponseDTO buscarPorId(Long id) {
-        DetritoEspacial detrito = detritoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Detrito não encontrado com ID: " + id));
-        return mapearParaResponseDTO(detrito);
+        return mapearParaResponseDTO(detritoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Detrito não encontrado com ID: " + id)));
     }
 
     private DetritoResponseDTO mapearParaResponseDTO(DetritoEspacial detrito) {
         CoordenadaDTO coordDTO = null;
-
         if (detrito.getCoordenada() != null) {
             coordDTO = new CoordenadaDTO(
                     detrito.getCoordenada().getEixoX(),
@@ -76,16 +76,10 @@ public class DetritoEspacialService {
                     detrito.getCoordenada().getAltitude()
             );
         }
-
         return new DetritoResponseDTO(
-                detrito.getId(),
-                detrito.getNome(),
-                detrito.getMassaKg(),
-                detrito.getVelocidade(),
-                coordDTO,
-                detrito.getRiscoColisao(),
-                detrito.getTipoDetrito(),
-                detrito.getOrigem()
+                detrito.getId(), detrito.getNome(), detrito.getMassaKg(),
+                detrito.getVelocidade(), coordDTO, detrito.getRiscoColisao(),
+                detrito.getTipoDetrito(), detrito.getOrigem()
         );
     }
 }
