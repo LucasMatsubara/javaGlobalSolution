@@ -2,6 +2,7 @@ package br.com.fiap.aegis.controller;
 
 import br.com.fiap.aegis.dto.DroneRequestDTO;
 import br.com.fiap.aegis.dto.DroneResponseDTO;
+import br.com.fiap.aegis.security.EmpresaResolver;
 import br.com.fiap.aegis.service.DroneLimpezaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,6 +28,9 @@ public class DroneLimpezaController {
 
     @Autowired
     private DroneLimpezaService droneService;
+
+    @Autowired
+    private EmpresaResolver empresaResolver;
 
     @PostMapping
     @Operation(summary = "Fabricar novo Drone")
@@ -57,18 +61,21 @@ public class DroneLimpezaController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os Drones com Paginação")
+    @Operation(summary = "Listar Drones — filtrado pela empresa do usuário logado")
     public ResponseEntity<PagedModel<EntityModel<DroneResponseDTO>>> listarTodos(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             PagedResourcesAssembler<DroneResponseDTO> pagedResourcesAssembler) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<DroneResponseDTO> dronesPaginados = droneService.listarTodosPaginado(pageable);
+        Long empresaId = empresaResolver.getEmpresaIdDoUsuarioLogado();
 
-        PagedModel<EntityModel<DroneResponseDTO>> pagedModel = pagedResourcesAssembler.toModel(dronesPaginados,
-                this::criarEntityModel
-        );
+        Page<DroneResponseDTO> dronesPaginados = (empresaId != null)
+                ? droneService.listarPorEmpresa(empresaId, pageable)
+                : droneService.listarTodosPaginado(pageable);
+
+        PagedModel<EntityModel<DroneResponseDTO>> pagedModel = pagedResourcesAssembler.toModel(
+                dronesPaginados, this::criarEntityModel);
 
         return ResponseEntity.ok(pagedModel);
     }

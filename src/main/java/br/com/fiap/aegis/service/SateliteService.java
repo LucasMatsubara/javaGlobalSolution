@@ -88,6 +88,10 @@ public class SateliteService {
         return sateliteRepository.findAll(pageable).map(this::mapearParaResponseDTO);
     }
 
+    public Page<SateliteResponseDTO> listarPorEmpresa(Long empresaId, Pageable pageable) {
+        return sateliteRepository.findByEmpresaId(empresaId, pageable).map(this::mapearParaResponseDTO);
+    }
+
     public SateliteResponseDTO buscarPorId(Long id) {
         Satelite satelite = sateliteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Satélite não encontrado com ID: " + id));

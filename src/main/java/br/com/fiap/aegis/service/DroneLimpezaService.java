@@ -20,10 +20,17 @@ public class DroneLimpezaService {
     @Autowired
     private LogOperacaoService logService;
 
+    @Autowired
+    private br.com.fiap.aegis.repository.EmpresaRepository empresaRepository;
+
     public DroneResponseDTO cadastrarDrone(DroneRequestDTO dto) {
         DroneLimpeza drone = new DroneLimpeza();
         drone.setNome(dto.nome());
         drone.setTipoBanda(dto.tipoBanda() != null ? dto.tipoBanda() : TipoBanda.BANDA_KA);
+        // Vincula a empresa se informada
+        if (dto.empresaId() != null) {
+            empresaRepository.findById(dto.empresaId()).ifPresent(drone::setEmpresa);
+        }
         DroneLimpeza droneSalvo = droneRepository.save(drone);
         logService.registarAcao(droneSalvo.getNome(), "Nova unidade de interceptação fabricada.", "SISTEMA");
         return mapearParaResponseDTO(droneSalvo);
@@ -48,6 +55,10 @@ public class DroneLimpezaService {
 
     public Page<DroneResponseDTO> listarTodosPaginado(Pageable pageable) {
         return droneRepository.findAll(pageable).map(this::mapearParaResponseDTO);
+    }
+
+    public Page<DroneResponseDTO> listarPorEmpresa(Long empresaId, Pageable pageable) {
+        return droneRepository.findByEmpresaId(empresaId, pageable).map(this::mapearParaResponseDTO);
     }
 
     public DroneResponseDTO buscarPorId(Long id) {

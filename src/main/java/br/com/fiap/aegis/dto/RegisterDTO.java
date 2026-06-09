@@ -16,5 +16,7 @@ public record RegisterDTO(
         String senha,
 
         @NotNull(message = "O perfil de acesso (Role) é obrigatório (ex: ROLE_USER, ROLE_ADMIN)")
-        UserRole role
+        UserRole role,
+
+        Long empresaId
 ) {}

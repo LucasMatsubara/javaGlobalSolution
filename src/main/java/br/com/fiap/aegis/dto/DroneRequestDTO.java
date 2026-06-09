@@ -10,5 +10,7 @@ public record DroneRequestDTO(
         String nome,
 
         @NotNull(message = "O tipo de banda de comunicação é obrigatório")
-        TipoBanda tipoBanda
+        TipoBanda tipoBanda,
+
+        Long empresaId
 ) {}

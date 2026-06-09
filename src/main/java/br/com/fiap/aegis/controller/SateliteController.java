@@ -2,6 +2,7 @@ package br.com.fiap.aegis.controller;
 
 import br.com.fiap.aegis.dto.SateliteRequestDTO;
 import br.com.fiap.aegis.dto.SateliteResponseDTO;
+import br.com.fiap.aegis.security.EmpresaResolver;
 import br.com.fiap.aegis.service.SateliteService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,6 +28,9 @@ public class SateliteController {
 
     @Autowired
     private SateliteService sateliteService;
+
+    @Autowired
+    private EmpresaResolver empresaResolver;
 
     @PostMapping
     @Operation(summary = "Lançar novo Satélite")
@@ -57,18 +61,21 @@ public class SateliteController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os Satélites com Paginação")
+    @Operation(summary = "Listar Satélites — filtrado pela empresa do usuário logado")
     public ResponseEntity<PagedModel<EntityModel<SateliteResponseDTO>>> listarTodos(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             PagedResourcesAssembler<SateliteResponseDTO> pagedResourcesAssembler) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<SateliteResponseDTO> satelitesPaginados = sateliteService.listarTodosPaginado(pageable);
+        Long empresaId = empresaResolver.getEmpresaIdDoUsuarioLogado();
 
-        PagedModel<EntityModel<SateliteResponseDTO>> pagedModel = pagedResourcesAssembler.toModel(satelitesPaginados,
-                this::criarEntityModel
-        );
+        Page<SateliteResponseDTO> satelitesPaginados = (empresaId != null)
+                ? sateliteService.listarPorEmpresa(empresaId, pageable)
+                : sateliteService.listarTodosPaginado(pageable);
+
+        PagedModel<EntityModel<SateliteResponseDTO>> pagedModel = pagedResourcesAssembler.toModel(
+                satelitesPaginados, this::criarEntityModel);
 
         return ResponseEntity.ok(pagedModel);
     }

@@ -4,7 +4,9 @@ import br.com.fiap.aegis.dto.AuthenticationDTO;
 import br.com.fiap.aegis.dto.LoginResponseDTO;
 import br.com.fiap.aegis.dto.RegisterDTO;
 import br.com.fiap.aegis.dto.RegisterResponseDTO;
+import br.com.fiap.aegis.model.Empresa;
 import br.com.fiap.aegis.model.Usuario;
+import br.com.fiap.aegis.repository.EmpresaRepository;
 import br.com.fiap.aegis.repository.UsuarioRepository;
 import br.com.fiap.aegis.service.TokenService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,16 +38,24 @@ public class AutenticacaoController {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
+    private EmpresaRepository empresaRepository;
+
+    @Autowired
     private TokenService tokenService;
 
     @PostMapping("/login")
-    @Operation(summary = "Login de Utilizador", description = "Valida as credenciais e retorna o Token JWT acompanhado de caminhos para a Dashboard")
+    @Operation(summary = "Login de Utilizador", description = "Valida as credenciais e retorna o Token JWT com empresaId e nome da empresa")
     public ResponseEntity<EntityModel<LoginResponseDTO>> login(@RequestBody @Valid AuthenticationDTO data) {
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(), data.senha());
         var auth = this.authenticationManager.authenticate(usernamePassword);
 
-        var token = tokenService.gerarToken((Usuario) auth.getPrincipal());
-        LoginResponseDTO response = new LoginResponseDTO(token);
+        Usuario usuario = (Usuario) auth.getPrincipal();
+        var token = tokenService.gerarToken(usuario);
+
+        Long empresaId = usuario.getEmpresa() != null ? usuario.getEmpresa().getId() : null;
+        String nomeEmpresa = usuario.getEmpresa() != null ? usuario.getEmpresa().getNome() : "Aegis Corp";
+
+        LoginResponseDTO response = new LoginResponseDTO(token, empresaId, nomeEmpresa);
 
         EntityModel<LoginResponseDTO> resource = EntityModel.of(response);
         resource.add(linkTo(AutenticacaoController.class).slash("login").withSelfRel());
@@ -55,14 +65,23 @@ public class AutenticacaoController {
     }
 
     @PostMapping("/register")
-    @Operation(summary = "Registar Utilizador", description = "Cria um novo utilizador com password encriptada e retorna link para direcionar ao login")
+    @Operation(summary = "Registar Utilizador", description = "Cria um novo utilizador vinculado a uma empresa existente")
     public ResponseEntity<RegisterResponseDTO> register(@RequestBody @Valid RegisterDTO data) {
         if (this.usuarioRepository.findByEmail(data.email()) != null) {
             return ResponseEntity.badRequest().build();
         }
 
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.senha());
-        Usuario novoUsuario = new Usuario(null, data.email(), encryptedPassword, data.role());
+        Usuario novoUsuario = new Usuario();
+        novoUsuario.setEmail(data.email());
+        novoUsuario.setSenha(encryptedPassword);
+        novoUsuario.setRole(data.role());
+
+        // Vincula empresa se o empresaId foi fornecido
+        if (data.empresaId() != null) {
+            empresaRepository.findById(data.empresaId()).ifPresent(novoUsuario::setEmpresa);
+        }
+
         this.usuarioRepository.save(novoUsuario);
 
         return ResponseEntity.ok(new RegisterResponseDTO("Usuário registrado com sucesso!", "/api/auth/login"));
