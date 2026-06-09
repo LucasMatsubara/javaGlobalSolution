@@ -48,12 +48,22 @@ public class MissaoIntercepcaoService {
             throw new IllegalStateException("OPERAÇÃO NEGADA: Não há drones disponíveis na base! Fabrique mais ou aguarde o retorno.");
         }
 
-        // Verifica se já existe missão ativa para este drone
-        boolean droneJaEmMissao = missaoRepository.findByDroneId(drone.getId()).stream()
-                .anyMatch(m -> m.getStatusMissao() == StatusMissao.EM_ANDAMENTO
-                        || m.getStatusMissao() == StatusMissao.AUTORIZADA);
-        if (droneJaEmMissao) {
-            throw new IllegalStateException("OPERAÇÃO NEGADA: Este drone já está associado a uma missão ativa.");
+        // Bloqueia apenas se o drone já está efetivamente voando (EM_ANDAMENTO).
+        // Missões com status AUTORIZADA são pré-criações do simulador e podem ser substituídas.
+        boolean droneJaVoando = missaoRepository.findByDroneId(drone.getId()).stream()
+                .anyMatch(m -> m.getStatusMissao() == StatusMissao.EM_ANDAMENTO);
+        if (droneJaVoando) {
+            throw new IllegalStateException("OPERAÇÃO NEGADA: Este drone já está em voo numa missão ativa.");
+        }
+
+        // Cancela missões AUTORIZADA pendentes do simulador para este drone,
+        // liberando a chave composta antes de criar a nova missão.
+        List<MissaoIntercepcao> missoesPendentes = missaoRepository.findByDroneId(drone.getId()).stream()
+                .filter(m -> m.getStatusMissao() == StatusMissao.AUTORIZADA)
+                .collect(Collectors.toList());
+        for (MissaoIntercepcao pendente : missoesPendentes) {
+            pendente.setStatusMissao(StatusMissao.ABORTADA);
+            missaoRepository.save(pendente);
         }
 
         // Consumo base por nível de risco
