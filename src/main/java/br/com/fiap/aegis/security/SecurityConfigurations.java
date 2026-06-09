@@ -30,10 +30,13 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/login/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/register/**").permitAll()
 
-                        // Liberando documentação do Swagger
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
+                        // 👉 A LINHA NOVA AQUI: Liberar a criação da empresa no registo inicial
+                        .requestMatchers(HttpMethod.POST, "/api/empresas").permitAll()
 
-                        // Protegendo todas as outras rotas da API
+                        // Liberando documentação do Swagger
+                        .requestMatchers("/v3/api-docs/*", "/swagger-ui.html", "/swagger-ui/*").permitAll()
+
+                        // Protegendo todas as outras rotas da API (Drones, Satélites, Dashboard, etc)
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
