@@ -13,6 +13,7 @@ public interface DroneLimpezaRepository extends JpaRepository<DroneLimpeza, Long
     List<DroneLimpeza> findByStatusOperacional(StatusOperacional statusOperacional);
     List<DroneLimpeza> findByNivelBateriaLessThan(Double nivelBateria);
     long countByStatusOperacional(StatusOperacional status);
+    long countByEmpresaIdAndStatusOperacional(Long empresaId, StatusOperacional status);
 
     // Filtro por empresa
     Page<DroneLimpeza> findByEmpresaId(Long empresaId, Pageable pageable);

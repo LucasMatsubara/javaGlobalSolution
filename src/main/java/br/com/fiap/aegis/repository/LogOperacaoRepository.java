@@ -5,13 +5,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Repository
 public interface LogOperacaoRepository extends JpaRepository<LogOperacao, Long> {
-    // buscar os logs mais recentes primeiro
     Page<LogOperacao> findAllByOrderByDataHoraDesc(Pageable pageable);
     long countByDataHoraAfter(LocalDateTime dataInicioDoDia);
+
+    // ✅ Filtros por empresa
+    Page<LogOperacao> findByEmpresaIdOrderByDataHoraDesc(Long empresaId, Pageable pageable);
+    long countByEmpresaIdAndDataHoraAfter(Long empresaId, LocalDateTime dataInicioDoDia);
+    long countByEmpresaId(Long empresaId);
 }

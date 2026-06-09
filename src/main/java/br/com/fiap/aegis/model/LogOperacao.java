@@ -1,8 +1,8 @@
 package br.com.fiap.aegis.model;
 
+import br.com.fiap.aegis.model.Empresa;
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,14 +14,13 @@ public class LogOperacao {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // alvo da operação? Ex: Fragmento de Foguete, aegis
     private String entidadeAlvo;
-
-    // o que aconteceu? Ex: Nova unidade de interceptação fabricada, Ameaça neutralizada
     private String descricao;
-
-    // colorir as bolinhas no front-end: CRITICO, MODERADO, SISTEMA, INFO
     private String nivelGravidade;
-
     private LocalDateTime dataHora;
+
+    // ✅ Vincula o log à empresa
+    @ManyToOne
+    @JoinColumn(name = "empresa_id")
+    private Empresa empresa;
 }

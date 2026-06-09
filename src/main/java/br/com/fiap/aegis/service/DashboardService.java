@@ -1,77 +1,45 @@
 package br.com.fiap.aegis.service;
 
 import br.com.fiap.aegis.dto.DashboardResponseDTO;
-import br.com.fiap.aegis.enums.RiscoColisao;
-import br.com.fiap.aegis.enums.StatusOperacional;
-import br.com.fiap.aegis.enums.StatusSatelite;
-import br.com.fiap.aegis.repository.DetritoEspacialRepository;
-import br.com.fiap.aegis.repository.DroneLimpezaRepository;
-import br.com.fiap.aegis.repository.LogOperacaoRepository;
-import br.com.fiap.aegis.repository.SateliteRepository;
+import br.com.fiap.aegis.enums.*;
+import br.com.fiap.aegis.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.*;
 
 @Service
 public class DashboardService {
 
-    @Autowired
-    private SateliteRepository sateliteRepository;
+    @Autowired private SateliteRepository sateliteRepository;
+    @Autowired private DroneLimpezaRepository droneRepository;
+    @Autowired private DetritoEspacialRepository detritoRepository;
+    @Autowired private LogOperacaoRepository logRepository;
 
-    @Autowired
-    private DroneLimpezaRepository droneRepository;
+    // ✅ Recebe empresaId — todos os dados são da empresa logada
+    public DashboardResponseDTO obterResumoDashboard(Long empresaId) {
 
-    @Autowired
-    private DetritoEspacialRepository detritoRepository;
+        long satelitesAtivos = sateliteRepository
+                .countByEmpresaIdAndStatusSatelite(empresaId, StatusSatelite.ATIVO);
 
-    @Autowired
-    private LogOperacaoRepository logRepository;
+        long dronesEmMissao =
+                droneRepository.countByEmpresaIdAndStatusOperacional(empresaId, StatusOperacional.INTERCEPTANDO)
+                        + droneRepository.countByEmpresaIdAndStatusOperacional(empresaId, StatusOperacional.RECOLHENDO_LIXO)
+                        + droneRepository.countByEmpresaIdAndStatusOperacional(empresaId, StatusOperacional.RETORNANDO);
 
-    public DashboardResponseDTO obterResumoDashboard() {
-        long satelitesAtivos = sateliteRepository.countByStatusSatelite(StatusSatelite.ATIVO);
+        long ameacasCriticas = detritoRepository.countByEmpresaIdAndRiscoColisao(empresaId, RiscoColisao.CRITICO);
+        long ameacasAltas    = detritoRepository.countByEmpresaIdAndRiscoColisao(empresaId, RiscoColisao.ALTO);
 
-        // Conta drones em qualquer fase de missão ativa
-        long dronesEmMissao = droneRepository.countByStatusOperacional(StatusOperacional.INTERCEPTANDO)
-                + droneRepository.countByStatusOperacional(StatusOperacional.RECOLHENDO_LIXO)
-                + droneRepository.countByStatusOperacional(StatusOperacional.RETORNANDO);
+        long logsTotais  = logRepository.countByEmpresaId(empresaId);
+        long alertasHoje = logRepository.countByEmpresaIdAndDataHoraAfter(
+                empresaId, LocalDate.now().atStartOfDay());
 
-        long ameacasCriticas = detritoRepository.countByRiscoColisao(RiscoColisao.CRITICO);
-        long ameacasAltas = detritoRepository.countByRiscoColisao(RiscoColisao.ALTO);
+        double saudeOrbital = Math.max(0.0, 100.0 - (ameacasCriticas * 15.0) - (ameacasAltas * 5.0));
 
-        long logsTotais = logRepository.count();
+        String statusSaude = saudeOrbital < 60.0 ? "CRITICO"  : saudeOrbital < 90.0 ? "DEGRADADO" : "NOMINAL";
+        String riscoGeral  = saudeOrbital < 60.0 ? "Alto"     : saudeOrbital < 90.0 ? "Médio"     : "Baixo";
+        double cobertura   = Math.min(100.0, 80.0 + (satelitesAtivos * 2.0));
 
-        LocalDateTime inicioDeHoje = LocalDate.now().atStartOfDay();
-        long alertasHoje = logRepository.countByDataHoraAfter(inicioDeHoje);
-
-        double saudeOrbital = 100.0;
-        saudeOrbital -= (ameacasCriticas * 15.0) + (ameacasAltas * 5.0);
-        if (saudeOrbital < 0) saudeOrbital = 0.0;
-
-        String statusSaude = "NOMINAL";
-        String riscoGeral = "Baixo";
-
-        if (saudeOrbital < 60.0) {
-            statusSaude = "CRITICO";
-            riscoGeral = "Alto";
-        } else if (saudeOrbital < 90.0) {
-            statusSaude = "DEGRADADO";
-            riscoGeral = "Médio";
-        }
-
-        double cobertura = Math.min(100.0, 80.0 + (satelitesAtivos * 2.0));
-
-        return new DashboardResponseDTO(
-                satelitesAtivos,
-                dronesEmMissao,
-                ameacasCriticas,
-                saudeOrbital,
-                statusSaude,
-                riscoGeral,
-                cobertura,
-                logsTotais,
-                alertasHoje
-        );
+        return new DashboardResponseDTO(satelitesAtivos, dronesEmMissao, ameacasCriticas,
+                saudeOrbital, statusSaude, riscoGeral, cobertura, logsTotais, alertasHoje);
     }
 }
