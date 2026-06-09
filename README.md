@@ -10,10 +10,10 @@ A solução conecta diretamente a exploração e segurança espacial a oportunid
 
 Para atender estritamente aos critérios de avaliação e organização exigidos no edital da Global Solution, todos os artefatos de entrega e links públicos de acesso estão centralizados abaixo:
 
-* **Link do Deploy Público:** `https://[INSIRA-AQUI-SUA-URL-DO-RENDER-OU-AZURE].com`
+* **Link do Deploy Público:** `https://aegisglobalsolution.onrender.com`
 * **Link do Vídeo de Apresentação:** `https://www.youtube.com/watch?v=[INSIRA-AQUI-O-ID-DO-SEU-VIDEO]`
 * **Link do Vídeo Pitch:** `https://www.youtube.com/watch?v=[INSIRA-AQUI-O-ID-DO-PITCH]`
-* **Documentação Interativa da API (Swagger UI):** `https://[INSIRA-AQUI-SUA-URL-DO-DEPLOY].com/swagger-ui/index.html` (ou local em `http://localhost:8080/swagger-ui/index.html`)
+* **Documentação Interativa da API (Swagger UI):** `https://aegisglobalsolution.onrender.com/swagger-ui/index.html` (ou local em `http://localhost:8080/swagger-ui/index.html`)
 
 ---
 
