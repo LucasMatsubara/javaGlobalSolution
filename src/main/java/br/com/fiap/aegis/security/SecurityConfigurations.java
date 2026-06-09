@@ -26,20 +26,22 @@ public class SecurityConfigurations {
         return http.csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        // Liberando rotas de autenticação com mapeamento amplo (/**)
+                        // 🔓 Liberando rotas de autenticação
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/login/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/register/**").permitAll()
 
-                        // Liberando documentação do Swagger
+                        // 🏢 Liberando a criação da empresa no registro inicial do Mobile
+                        .requestMatchers(HttpMethod.POST, "/api/empresas").permitAll()
+
+                        // 📘 Liberando documentação do Swagger (CORRIGIDO com /** para carregar CSS e JS)
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
 
-                        // Protegendo todas as outras rotas da API
+                        // 🔒 Protegendo absolutamente todas as outras rotas da API
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
