@@ -14,6 +14,5 @@ public record MissaoRequestDTO(
         @Positive(message = "O ID do detrito deve ser um número válido e positivo")
         Long detritoId,
 
-        @NotNull(message = "O status inicial da missão é obrigatório")
         StatusMissao statusMissao
 ) {}

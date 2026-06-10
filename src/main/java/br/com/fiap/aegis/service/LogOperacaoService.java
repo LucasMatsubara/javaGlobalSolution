@@ -17,12 +17,10 @@ public class LogOperacaoService {
     @Autowired
     private LogOperacaoRepository logRepository;
 
-    // ✅ Versão sem empresa (compatibilidade com chamadas antigas)
     public void registarAcao(String alvo, String descricao, String gravidade) {
         registarAcao(alvo, descricao, gravidade, null);
     }
 
-    // ✅ Versão com empresa — usada pelo Simulador
     public void registarAcao(String alvo, String descricao, String gravidade, Empresa empresa) {
         LogOperacao log = new LogOperacao();
         log.setEntidadeAlvo(alvo);
@@ -37,7 +35,6 @@ public class LogOperacaoService {
         return logRepository.findAllByOrderByDataHoraDesc(pageable).map(this::mapearParaResponseDTO);
     }
 
-    // ✅ Listagem filtrada por empresa
     public Page<LogOperacaoResponseDTO> listarPorEmpresa(Long empresaId, Pageable pageable) {
         return logRepository.findByEmpresaIdOrderByDataHoraDesc(empresaId, pageable).map(this::mapearParaResponseDTO);
     }

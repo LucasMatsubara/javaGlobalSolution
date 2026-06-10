@@ -1,12 +1,8 @@
 package br.com.fiap.aegis.service;
 
-import br.com.fiap.aegis.enums.StatusMissao;
-import br.com.fiap.aegis.enums.StatusOperacional;
-import br.com.fiap.aegis.model.DroneLimpeza;
-import br.com.fiap.aegis.model.MissaoIntercepcao;
-import br.com.fiap.aegis.repository.DetritoEspacialRepository;
-import br.com.fiap.aegis.repository.DroneLimpezaRepository;
-import br.com.fiap.aegis.repository.MissaoIntercepcaoRepository;
+import br.com.fiap.aegis.enums.*;
+import br.com.fiap.aegis.model.*;
+import br.com.fiap.aegis.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;

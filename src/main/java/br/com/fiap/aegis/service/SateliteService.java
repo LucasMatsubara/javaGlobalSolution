@@ -1,19 +1,16 @@
 package br.com.fiap.aegis.service;
 
-import br.com.fiap.aegis.dto.CoordenadaDTO;
-import br.com.fiap.aegis.dto.EmpresaResponseDTO;
-import br.com.fiap.aegis.dto.SateliteRequestDTO;
-import br.com.fiap.aegis.dto.SateliteResponseDTO;
+import br.com.fiap.aegis.dto.*;
 import br.com.fiap.aegis.exception.ResourceNotFoundException;
-import br.com.fiap.aegis.model.CoordenadaOrbital;
-import br.com.fiap.aegis.model.Empresa;
-import br.com.fiap.aegis.model.Satelite;
-import br.com.fiap.aegis.repository.EmpresaRepository;
-import br.com.fiap.aegis.repository.SateliteRepository;
+import br.com.fiap.aegis.model.*;
+import br.com.fiap.aegis.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class SateliteService {
@@ -23,6 +20,12 @@ public class SateliteService {
 
     @Autowired
     private EmpresaRepository empresaRepository;
+
+    @Autowired
+    private DetritoEspacialRepository detritoRepository;
+
+    @Autowired
+    private MissaoIntercepcaoRepository missaoRepository;
 
     @Autowired
     private LogOperacaoService logService;
@@ -48,7 +51,8 @@ public class SateliteService {
         satelite.setCoordenada(coordenadas);
 
         Satelite sateliteSalvo = sateliteRepository.save(satelite);
-        logService.registarAcao(sateliteSalvo.getNome(), "Lançamento orbital nominal.", "INFO");
+        logService.registarAcao(sateliteSalvo.getNome(),
+                "Lançamento orbital nominal.", "INFO", empresa);
         return mapearParaResponseDTO(sateliteSalvo);
     }
 
@@ -73,15 +77,32 @@ public class SateliteService {
         satelite.getCoordenada().setAltitude(dto.coordenadas().altitude());
 
         Satelite sateliteAtualizado = sateliteRepository.save(satelite);
-        logService.registarAcao(sateliteAtualizado.getNome(), "Dados operacionais atualizados.", "SISTEMA");
+        logService.registarAcao(sateliteAtualizado.getNome(),
+                "Dados operacionais atualizados.", "SISTEMA", empresa);
         return mapearParaResponseDTO(sateliteAtualizado);
     }
 
+    @Transactional
     public void deletarSatelite(Long id) {
         Satelite satelite = sateliteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Satélite não encontrado com ID: " + id));
+
+        Empresa empresa = empresaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrada com ID: " + id));
+
+        List<DetritoEspacial> detritos = detritoRepository.findBySateliteId(id);
+
+        for (DetritoEspacial detrito : detritos) {
+            List<MissaoIntercepcao> missoes = missaoRepository.findByDetritoId(detrito.getId());
+            missaoRepository.deleteAll(missoes);
+        }
+
+        detritoRepository.deleteAll(detritos);
+
         sateliteRepository.delete(satelite);
-        logService.registarAcao(satelite.getNome(), "Satélite removido do monitoramento orbital.", "ALTO");
+
+        logService.registarAcao(satelite.getNome(),
+                "Satélite removido. X detrito(s) eliminado(s).", "ALTO", empresa);
     }
 
     public Page<SateliteResponseDTO> listarTodosPaginado(Pageable pageable) {

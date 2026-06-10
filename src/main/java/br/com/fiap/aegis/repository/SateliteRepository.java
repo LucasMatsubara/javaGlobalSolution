@@ -14,7 +14,6 @@ public interface SateliteRepository extends JpaRepository<Satelite, Long> {
     List<Satelite> findByEmpresaNomeIgnoreCase(String empresaProprietaria);
     long countByStatusSatelite(StatusSatelite status);
 
-    // Filtro por empresa (para isolamento de dados por empresa logada)
     Page<Satelite> findByEmpresaId(Long empresaId, Pageable pageable);
     long countByEmpresaIdAndStatusSatelite(Long empresaId, StatusSatelite status);
 }

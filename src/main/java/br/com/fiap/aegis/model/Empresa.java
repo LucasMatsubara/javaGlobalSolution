@@ -19,8 +19,6 @@ public class Empresa {
     @Column(nullable = false, unique = true)
     private String cnpj;
 
-    // 1:N (uma empresa pode ter vários satélites cadastrados)
-    // cascade garante que operações na empresa se reflitam nos seus satélites, se necessário
     @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Satelite> satelites;
 }

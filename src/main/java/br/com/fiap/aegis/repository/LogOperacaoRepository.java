@@ -12,7 +12,6 @@ public interface LogOperacaoRepository extends JpaRepository<LogOperacao, Long> 
     Page<LogOperacao> findAllByOrderByDataHoraDesc(Pageable pageable);
     long countByDataHoraAfter(LocalDateTime dataInicioDoDia);
 
-    // ✅ Filtros por empresa
     Page<LogOperacao> findByEmpresaIdOrderByDataHoraDesc(Long empresaId, Pageable pageable);
     long countByEmpresaIdAndDataHoraAfter(Long empresaId, LocalDateTime dataInicioDoDia);
     long countByEmpresaId(Long empresaId);

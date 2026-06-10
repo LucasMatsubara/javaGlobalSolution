@@ -27,12 +27,12 @@ public class DroneLimpezaService {
         DroneLimpeza drone = new DroneLimpeza();
         drone.setNome(dto.nome());
         drone.setTipoBanda(dto.tipoBanda() != null ? dto.tipoBanda() : TipoBanda.BANDA_KA);
-        // Vincula a empresa se informada
         if (dto.empresaId() != null) {
             empresaRepository.findById(dto.empresaId()).ifPresent(drone::setEmpresa);
         }
         DroneLimpeza droneSalvo = droneRepository.save(drone);
-        logService.registarAcao(droneSalvo.getNome(), "Nova unidade de interceptação fabricada.", "SISTEMA");
+        logService.registarAcao(droneSalvo.getNome(),
+                "Nova unidade de interceptação fabricada.", "SISTEMA", droneSalvo.getEmpresa());
         return mapearParaResponseDTO(droneSalvo);
     }
 
@@ -42,7 +42,8 @@ public class DroneLimpezaService {
         drone.setNome(dto.nome());
         if (dto.tipoBanda() != null) drone.setTipoBanda(dto.tipoBanda());
         DroneLimpeza droneAtualizado = droneRepository.save(drone);
-        logService.registarAcao(droneAtualizado.getNome(), "Designação da unidade alterada.", "SISTEMA");
+        logService.registarAcao(droneAtualizado.getNome(),
+                "Designação da unidade alterada.", "SISTEMA", droneAtualizado.getEmpresa());
         return mapearParaResponseDTO(droneAtualizado);
     }
 
@@ -50,7 +51,8 @@ public class DroneLimpezaService {
         DroneLimpeza drone = droneRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Drone não encontrado com ID: " + id));
         droneRepository.delete(drone);
-        logService.registarAcao(drone.getNome(), "Unidade de interceptação desativada e sucateada.", "ALTO");
+        logService.registarAcao(drone.getNome(),
+                "Unidade de interceptação desativada e sucateada.", "ALTO", drone.getEmpresa());
     }
 
     public Page<DroneResponseDTO> listarTodosPaginado(Pageable pageable) {

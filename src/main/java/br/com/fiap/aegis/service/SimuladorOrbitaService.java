@@ -1,20 +1,8 @@
 package br.com.fiap.aegis.service;
 
-import br.com.fiap.aegis.enums.RiscoColisao;
-import br.com.fiap.aegis.enums.StatusMissao;
-import br.com.fiap.aegis.enums.StatusOperacional;
-import br.com.fiap.aegis.enums.TipoDetrito;
-import br.com.fiap.aegis.model.CoordenadaOrbital;
-import br.com.fiap.aegis.model.DetritoEspacial;
-import br.com.fiap.aegis.model.DroneLimpeza;
-import br.com.fiap.aegis.model.Empresa;
-import br.com.fiap.aegis.model.MissaoId;
-import br.com.fiap.aegis.model.MissaoIntercepcao;
-import br.com.fiap.aegis.model.Satelite;
-import br.com.fiap.aegis.repository.DetritoEspacialRepository;
-import br.com.fiap.aegis.repository.DroneLimpezaRepository;
-import br.com.fiap.aegis.repository.MissaoIntercepcaoRepository;
-import br.com.fiap.aegis.repository.SateliteRepository;
+import br.com.fiap.aegis.enums.*;
+import br.com.fiap.aegis.model.*;
+import br.com.fiap.aegis.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -41,17 +29,14 @@ public class SimuladorOrbitaService {
 
     @Scheduled(fixedDelay = 30000)
     public void gerarDetritosEMissoes() {
-        // ✅ CORREÇÃO 2: busca lista real de satélites (com suas empresas)
         List<Satelite> satelites = sateliteRepository.findAll();
         long totalDrones = droneRepository.count();
 
-        // Só gera se houver satélites E drones — garante que a tela fique vazia sem satélite
         if (satelites.isEmpty() || totalDrones == 0) return;
 
         int quantidadeDetritos = random.nextInt(3) + 1;
 
         for (int i = 0; i < quantidadeDetritos; i++) {
-            // ✅ Sorteia um satélite e usa a empresa DELE — detrito sempre fica na empresa certa
             Satelite sateliteAlvo = satelites.get(random.nextInt(satelites.size()));
             Empresa empresaAlvo = sateliteAlvo.getEmpresa();
 
@@ -70,6 +55,7 @@ public class SimuladorOrbitaService {
 
     private DetritoEspacial gerarDetritoAleatorio(Empresa empresa) {
         DetritoEspacial detrito = new DetritoEspacial();
+        Satelite satelite = new Satelite();
 
         TipoDetrito[] tipos = TipoDetrito.values();
         TipoDetrito tipo = tipos[random.nextInt(tipos.length)];
@@ -79,8 +65,7 @@ public class SimuladorOrbitaService {
         detrito.setVelocidade(7.0 + random.nextDouble() * 2.0);
         detrito.setRiscoColisao(calcularRiscoPorMassa(detrito.getMassaKg()));
         detrito.setOrigem(ORIGENS[random.nextInt(ORIGENS.length)]);
-
-        // ✅ Vincula o detrito à empresa
+        detrito.setSatelite(satelite);
         detrito.setEmpresa(empresa);
 
         CoordenadaOrbital coordenada = new CoordenadaOrbital();

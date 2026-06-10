@@ -15,7 +15,6 @@ public class DashboardService {
     @Autowired private DetritoEspacialRepository detritoRepository;
     @Autowired private LogOperacaoRepository logRepository;
 
-    // ✅ Recebe empresaId — todos os dados são da empresa logada
     public DashboardResponseDTO obterResumoDashboard(Long empresaId) {
 
         long satelitesAtivos = sateliteRepository

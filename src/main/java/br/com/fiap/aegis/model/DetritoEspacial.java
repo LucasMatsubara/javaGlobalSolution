@@ -34,10 +34,13 @@ public class DetritoEspacial {
     @Column(name = "origem")
     private String origem;
 
-    // ✅ CORREÇÃO 2: vincula o detrito à empresa — base do isolamento
     @ManyToOne
     @JoinColumn(name = "empresa_id")
     private Empresa empresa;
+
+    @ManyToOne
+    @JoinColumn(name = "satelite_id")
+    private Satelite satelite;
 
     @Embedded
     private CoordenadaOrbital coordenada;

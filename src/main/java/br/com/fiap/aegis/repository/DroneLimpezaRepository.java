@@ -15,7 +15,6 @@ public interface DroneLimpezaRepository extends JpaRepository<DroneLimpeza, Long
     long countByStatusOperacional(StatusOperacional status);
     long countByEmpresaIdAndStatusOperacional(Long empresaId, StatusOperacional status);
 
-    // Filtro por empresa
     Page<DroneLimpeza> findByEmpresaId(Long empresaId, Pageable pageable);
     List<DroneLimpeza> findByEmpresaIdAndStatusOperacional(Long empresaId, StatusOperacional statusOperacional);
 }

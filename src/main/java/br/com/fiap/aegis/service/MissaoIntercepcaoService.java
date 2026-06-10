@@ -2,19 +2,10 @@ package br.com.fiap.aegis.service;
 
 import br.com.fiap.aegis.dto.MissaoRequestDTO;
 import br.com.fiap.aegis.dto.MissaoResponseDTO;
-import br.com.fiap.aegis.enums.RiscoColisao;
-import br.com.fiap.aegis.enums.StatusMissao;
-import br.com.fiap.aegis.enums.StatusOperacional;
-import br.com.fiap.aegis.enums.TipoBanda;
-import br.com.fiap.aegis.enums.TipoDetrito;
+import br.com.fiap.aegis.enums.*;
 import br.com.fiap.aegis.exception.ResourceNotFoundException;
-import br.com.fiap.aegis.model.DetritoEspacial;
-import br.com.fiap.aegis.model.DroneLimpeza;
-import br.com.fiap.aegis.model.MissaoId;
-import br.com.fiap.aegis.model.MissaoIntercepcao;
-import br.com.fiap.aegis.repository.DetritoEspacialRepository;
-import br.com.fiap.aegis.repository.DroneLimpezaRepository;
-import br.com.fiap.aegis.repository.MissaoIntercepcaoRepository;
+import br.com.fiap.aegis.model.*;
+import br.com.fiap.aegis.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -48,16 +39,12 @@ public class MissaoIntercepcaoService {
             throw new IllegalStateException("OPERAÇÃO NEGADA: Não há drones disponíveis na base! Fabrique mais ou aguarde o retorno.");
         }
 
-        // Bloqueia apenas se o drone já está efetivamente voando (EM_ANDAMENTO).
-        // Missões com status AUTORIZADA são pré-criações do simulador e podem ser substituídas.
         boolean droneJaVoando = missaoRepository.findByDroneId(drone.getId()).stream()
                 .anyMatch(m -> m.getStatusMissao() == StatusMissao.EM_ANDAMENTO);
         if (droneJaVoando) {
             throw new IllegalStateException("OPERAÇÃO NEGADA: Este drone já está em voo numa missão ativa.");
         }
 
-        // Cancela missões AUTORIZADA pendentes do simulador para este drone,
-        // liberando a chave composta antes de criar a nova missão.
         List<MissaoIntercepcao> missoesPendentes = missaoRepository.findByDroneId(drone.getId()).stream()
                 .filter(m -> m.getStatusMissao() == StatusMissao.AUTORIZADA)
                 .collect(Collectors.toList());
@@ -66,10 +53,8 @@ public class MissaoIntercepcaoService {
             missaoRepository.save(pendente);
         }
 
-        // Consumo base por nível de risco
         double consumo = calcularConsumoPorRisco(detrito.getRiscoColisao());
 
-        // Penalidade de 12% se a banda não for ideal para o tipo de detrito
         if (!bandaIdealParaDetrito(drone.getTipoBanda(), detrito.getTipoDetrito())) {
             consumo += 12.0;
         }
@@ -92,11 +77,9 @@ public class MissaoIntercepcaoService {
 
         MissaoIntercepcao missaoSalva = missaoRepository.save(missao);
 
-        logService.registarAcao(
-                drone.getNome(),
+        logService.registarAcao(drone.getNome(),
                 "Drone despachado para interceptar " + detrito.getNome() + ".",
-                detrito.getRiscoColisao().name()
-        );
+                detrito.getRiscoColisao().name(), drone.getEmpresa());
 
         return mapearParaResponseDTO(missaoSalva);
     }
@@ -149,11 +132,9 @@ public class MissaoIntercepcaoService {
         missao.setStatusMissao(StatusMissao.EM_ANDAMENTO);
         missaoRepository.save(missao);
 
-        logService.registarAcao(
-                drone.getNome(),
+        logService.registarAcao(drone.getNome(),
                 "Drone despachado para interceptar " + missao.getDetrito().getNome() + ".",
-                missao.getDetrito().getRiscoColisao().name()
-        );
+                missao.getDetrito().getRiscoColisao().name(), drone.getEmpresa());
 
         return mapearParaResponseDTO(missao);
     }

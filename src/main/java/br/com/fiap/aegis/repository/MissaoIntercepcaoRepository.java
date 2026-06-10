@@ -11,4 +11,5 @@ import java.util.List;
 public interface MissaoIntercepcaoRepository extends JpaRepository<MissaoIntercepcao, MissaoId> {
     List<MissaoIntercepcao> findByStatusMissao(StatusMissao statusMissao);
     List<MissaoIntercepcao> findByDroneId(Long droneId);
+    List<MissaoIntercepcao> findByDetritoId(Long detritoId);
 }

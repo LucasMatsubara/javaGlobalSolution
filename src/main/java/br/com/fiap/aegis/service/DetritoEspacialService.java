@@ -1,8 +1,6 @@
 package br.com.fiap.aegis.service;
 
-import br.com.fiap.aegis.dto.CoordenadaDTO;
-import br.com.fiap.aegis.dto.DetritoRequestDTO;
-import br.com.fiap.aegis.dto.DetritoResponseDTO;
+import br.com.fiap.aegis.dto.*;
 import br.com.fiap.aegis.exception.ResourceNotFoundException;
 import br.com.fiap.aegis.model.CoordenadaOrbital;
 import br.com.fiap.aegis.model.DetritoEspacial;
@@ -57,7 +55,6 @@ public class DetritoEspacialService {
         return detritoRepository.findAll(pageable).map(this::mapearParaResponseDTO);
     }
 
-    // ✅ CORREÇÃO 2: listagem isolada por empresa
     public Page<DetritoResponseDTO> listarPorEmpresa(Long empresaId, Pageable pageable) {
         return detritoRepository.findByEmpresaId(empresaId, pageable).map(this::mapearParaResponseDTO);
     }
