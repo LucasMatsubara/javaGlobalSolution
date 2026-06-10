@@ -19,7 +19,6 @@ public class LogOperacao {
     private String nivelGravidade;
     private LocalDateTime dataHora;
 
-    // ✅ Vincula o log à empresa
     @ManyToOne
     @JoinColumn(name = "empresa_id")
     private Empresa empresa;
