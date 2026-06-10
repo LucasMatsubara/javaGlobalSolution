@@ -26,10 +26,15 @@ public class DroneSimuladorScheduler {
 
     @Scheduled(fixedDelay = 20000)
     public void simularCicloDrones() {
-        simularDronesInterceptando();
-        simularDronesRecolhendoLixo();
-        simularDronesRetornando();
-        recarregarDronesNaBase();
+        try {
+            simularDronesInterceptando();
+            simularDronesRecolhendoLixo();
+            simularDronesRetornando();
+            recarregarDronesNaBase();
+        } catch (Exception e) {
+            System.err.println("[DroneSimulador] ERRO no ciclo: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void simularDronesInterceptando() {
@@ -50,14 +55,19 @@ public class DroneSimuladorScheduler {
             List<MissaoIntercepcao> missoes = missaoRepository.findByDroneId(drone.getId());
             for (MissaoIntercepcao missao : missoes) {
                 if (missao.getStatusMissao() == StatusMissao.EM_ANDAMENTO) {
-                    missao.setStatusMissao(StatusMissao.CONCLUIDA_SUCESSO);
-                    missaoRepository.save(missao);
+                    DetritoEspacial detritoNeutralizado = missao.getDetrito();
+                    String nomeDetrito = detritoNeutralizado.getNome();
+
+                    missaoRepository.delete(missao);
+
+                    detritoRepository.delete(detritoNeutralizado);
+
                     logService.registarAcao(
-                            missao.getDetrito().getNome(),
+                            nomeDetrito,
                             "Ameaça neutralizada com sucesso por " + drone.getNome() + ".",
-                            "INFO"
+                            "INFO",
+                            drone.getEmpresa()
                     );
-                    detritoRepository.delete(missao.getDetrito());
                 }
             }
 
