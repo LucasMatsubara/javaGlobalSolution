@@ -29,33 +29,39 @@ public class SimuladorOrbitaService {
 
     @Scheduled(fixedDelay = 30000)
     public void gerarDetritosEMissoes() {
-        List<Satelite> satelites = sateliteRepository.findAll();
-        long totalDrones = droneRepository.count();
+        try {
+            List<Satelite> satelites = sateliteRepository.findAll();
+            long totalDrones = droneRepository.count();
 
-        if (satelites.isEmpty() || totalDrones == 0) return;
+            if (satelites.isEmpty() || totalDrones == 0) return;
 
-        int quantidadeDetritos = random.nextInt(3) + 1;
+            int quantidadeDetritos = random.nextInt(3) + 1;
 
-        for (int i = 0; i < quantidadeDetritos; i++) {
-            Satelite sateliteAlvo = satelites.get(random.nextInt(satelites.size()));
-            Empresa empresaAlvo = sateliteAlvo.getEmpresa();
+            for (int i = 0; i < quantidadeDetritos; i++) {
+                Satelite sateliteAlvo = satelites.get(random.nextInt(satelites.size()));
+                Empresa empresaAlvo = sateliteAlvo.getEmpresa();
 
-            DetritoEspacial detrito = gerarDetritoAleatorio(empresaAlvo);
-            DetritoEspacial detritoSalvo = detritoRepository.save(detrito);
+                // ✅ FIX: passa o sateliteAlvo real (com ID), não um new Satelite() vazio
+                DetritoEspacial detrito = gerarDetritoAleatorio(empresaAlvo, sateliteAlvo);
+                DetritoEspacial detritoSalvo = detritoRepository.save(detrito);
 
-            logService.registarAcao(
-                    detritoSalvo.getNome(),
-                    "Ameaça detectada em rota com satélite monitorado.",
-                    detritoSalvo.getRiscoColisao().name()
-            );
+                logService.registarAcao(
+                        detritoSalvo.getNome(),
+                        "Ameaça detectada em rota com satélite monitorado.",
+                        detritoSalvo.getRiscoColisao().name(),
+                        empresaAlvo
+                );
 
-            criarMissaoPendente(detritoSalvo);
+                criarMissaoPendente(detritoSalvo);
+            }
+        } catch (Exception e) {
+            System.err.println("[SimuladorOrbita] ERRO ao gerar detritos: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    private DetritoEspacial gerarDetritoAleatorio(Empresa empresa) {
+    private DetritoEspacial gerarDetritoAleatorio(Empresa empresa, Satelite sateliteAlvo) {
         DetritoEspacial detrito = new DetritoEspacial();
-        Satelite satelite = new Satelite();
 
         TipoDetrito[] tipos = TipoDetrito.values();
         TipoDetrito tipo = tipos[random.nextInt(tipos.length)];
@@ -65,7 +71,7 @@ public class SimuladorOrbitaService {
         detrito.setVelocidade(7.0 + random.nextDouble() * 2.0);
         detrito.setRiscoColisao(calcularRiscoPorMassa(detrito.getMassaKg()));
         detrito.setOrigem(ORIGENS[random.nextInt(ORIGENS.length)]);
-        detrito.setSatelite(satelite);
+        detrito.setSatelite(sateliteAlvo);  // ✅ satélite real com ID válido
         detrito.setEmpresa(empresa);
 
         CoordenadaOrbital coordenada = new CoordenadaOrbital();
@@ -122,19 +128,23 @@ public class SimuladorOrbitaService {
     }
 
     private void criarMissaoPendente(DetritoEspacial detrito) {
-        List<DroneLimpeza> dronesNaBase = droneRepository.findByStatusOperacional(StatusOperacional.NA_BASE);
-        if (dronesNaBase.isEmpty()) return;
+        try {
+            List<DroneLimpeza> dronesNaBase = droneRepository.findByStatusOperacional(StatusOperacional.NA_BASE);
+            if (dronesNaBase.isEmpty()) return;
 
-        DroneLimpeza drone = dronesNaBase.get(0);
-        MissaoId missaoId = new MissaoId(drone.getId(), detrito.getId());
-        if (missaoRepository.existsById(missaoId)) return;
+            DroneLimpeza drone = dronesNaBase.get(0);
+            MissaoId missaoId = new MissaoId(drone.getId(), detrito.getId());
+            if (missaoRepository.existsById(missaoId)) return;
 
-        MissaoIntercepcao missao = new MissaoIntercepcao();
-        missao.setId(missaoId);
-        missao.setDrone(drone);
-        missao.setDetrito(detrito);
-        missao.setStatusMissao(StatusMissao.AUTORIZADA);
-        missao.setDataMissao(LocalDateTime.now());
-        missaoRepository.save(missao);
+            MissaoIntercepcao missao = new MissaoIntercepcao();
+            missao.setId(missaoId);
+            missao.setDrone(drone);
+            missao.setDetrito(detrito);
+            missao.setStatusMissao(StatusMissao.AUTORIZADA);
+            missao.setDataMissao(LocalDateTime.now());
+            missaoRepository.save(missao);
+        } catch (Exception e) {
+            System.err.println("[SimuladorOrbita] ERRO ao criar missão pendente: " + e.getMessage());
+        }
     }
 }
