@@ -4,7 +4,12 @@ import br.com.fiap.aegis.dto.*;
 import br.com.fiap.aegis.exception.ResourceNotFoundException;
 import br.com.fiap.aegis.model.CoordenadaOrbital;
 import br.com.fiap.aegis.model.DetritoEspacial;
+import br.com.fiap.aegis.model.Empresa;
+import br.com.fiap.aegis.model.Satelite;
 import br.com.fiap.aegis.repository.DetritoEspacialRepository;
+import br.com.fiap.aegis.repository.EmpresaRepository;
+import br.com.fiap.aegis.repository.SateliteRepository;
+import br.com.fiap.aegis.security.EmpresaResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,9 +21,31 @@ public class DetritoEspacialService {
     @Autowired
     private DetritoEspacialRepository detritoRepository;
 
+    @Autowired
+    private EmpresaRepository empresaRepository;
+
+    @Autowired
+    private SateliteRepository sateliteRepository;
+
+    @Autowired
+    private EmpresaResolver empresaResolver;
+
     public DetritoResponseDTO registrarDetrito(DetritoRequestDTO dto) {
         DetritoEspacial detrito = new DetritoEspacial();
         mapearCampos(detrito, dto);
+
+        // Vincula empresa: usa o empresaId do body, senão usa o do usuário logado
+        Long eid = dto.empresaId() != null ? dto.empresaId()
+                : empresaResolver.getEmpresaIdDoUsuarioLogado();
+        if (eid != null) {
+            empresaRepository.findById(eid).ifPresent(detrito::setEmpresa);
+        }
+
+        // Vincula satélite se informado
+        if (dto.sateliteId() != null) {
+            sateliteRepository.findById(dto.sateliteId()).ifPresent(detrito::setSatelite);
+        }
+
         return mapearParaResponseDTO(detritoRepository.save(detrito));
     }
 
@@ -26,6 +53,14 @@ public class DetritoEspacialService {
         DetritoEspacial detrito = detritoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ameaça não encontrada com ID: " + id));
         mapearCampos(detrito, dto);
+
+        if (dto.empresaId() != null) {
+            empresaRepository.findById(dto.empresaId()).ifPresent(detrito::setEmpresa);
+        }
+        if (dto.sateliteId() != null) {
+            sateliteRepository.findById(dto.sateliteId()).ifPresent(detrito::setSatelite);
+        }
+
         return mapearParaResponseDTO(detritoRepository.save(detrito));
     }
 

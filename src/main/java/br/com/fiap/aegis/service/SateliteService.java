@@ -87,8 +87,8 @@ public class SateliteService {
         Satelite satelite = sateliteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Satélite não encontrado com ID: " + id));
 
-        Empresa empresa = empresaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Empresa não encontrada com ID: " + id));
+        // ✅ FIX: usa a empresa do próprio satélite, não busca por id incorreto
+        Empresa empresa = satelite.getEmpresa();
 
         List<DetritoEspacial> detritos = detritoRepository.findBySateliteId(id);
 
@@ -102,7 +102,7 @@ public class SateliteService {
         sateliteRepository.delete(satelite);
 
         logService.registarAcao(satelite.getNome(),
-                "Satélite removido. X detrito(s) eliminado(s).", "ALTO", empresa);
+                "Satélite removido. " + detritos.size() + " detrito(s) eliminado(s).", "ALTO", empresa);
     }
 
     public Page<SateliteResponseDTO> listarTodosPaginado(Pageable pageable) {

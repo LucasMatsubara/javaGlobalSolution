@@ -30,6 +30,11 @@ public record DetritoRequestDTO(
         String origem,
 
         @NotNull(message = "As coordenadas orbitais são obrigatórias")
-        @Valid // Importante: Garante que o Spring também valide as regras lá dentro do CoordenadaDTO
-        CoordenadaDTO coordenadas
+        @Valid
+        CoordenadaDTO coordenadas,
+
+        // Opcionais — usados no POST manual (Swagger/Postman) para vincular empresa e satélite
+        Long empresaId,
+
+        Long sateliteId
 ) {}
