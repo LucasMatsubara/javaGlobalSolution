@@ -6,6 +6,7 @@ import br.com.fiap.aegis.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,7 +29,9 @@ public class SimuladorOrbitaService {
     };
 
     @Scheduled(fixedDelay = 30000)
+    @Transactional
     public void gerarDetritosEMissoes() {
+        // ✅ FIX: try/catch garante que uma falha não para o scheduler para sempre
         try {
             List<Satelite> satelites = sateliteRepository.findAll();
             long totalDrones = droneRepository.count();
@@ -55,11 +58,13 @@ public class SimuladorOrbitaService {
                 criarMissaoPendente(detritoSalvo);
             }
         } catch (Exception e) {
+            // Loga o erro mas NÃO relança — garante que o scheduler continue rodando
             System.err.println("[SimuladorOrbita] ERRO ao gerar detritos: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
+    // ✅ FIX: recebe o sateliteAlvo real ao invés de criar new Satelite() vazio
     private DetritoEspacial gerarDetritoAleatorio(Empresa empresa, Satelite sateliteAlvo) {
         DetritoEspacial detrito = new DetritoEspacial();
 

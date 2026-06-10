@@ -6,25 +6,20 @@ import br.com.fiap.aegis.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 public class DroneSimuladorScheduler {
 
-    @Autowired
-    private DroneLimpezaRepository droneRepository;
-
-    @Autowired
-    private MissaoIntercepcaoRepository missaoRepository;
-
-    @Autowired
-    private DetritoEspacialRepository detritoRepository;
-
-    @Autowired
-    private LogOperacaoService logService;
+    @Autowired private DroneLimpezaRepository droneRepository;
+    @Autowired private MissaoIntercepcaoRepository missaoRepository;
+    @Autowired private DetritoEspacialRepository detritoRepository;
+    @Autowired private LogOperacaoService logService;
 
     @Scheduled(fixedDelay = 20000)
+    @Transactional
     public void simularCicloDrones() {
         try {
             simularDronesInterceptando();
@@ -42,7 +37,12 @@ public class DroneSimuladorScheduler {
         for (DroneLimpeza drone : drones) {
             drone.setStatusOperacional(StatusOperacional.RECOLHENDO_LIXO);
             droneRepository.save(drone);
-            logService.registarAcao(drone.getNome(), "Drone chegou ao alvo. Iniciando recolhimento do detrito.", "SISTEMA");
+            logService.registarAcao(
+                    drone.getNome(),
+                    "Drone chegou ao alvo. Iniciando recolhimento do detrito.",
+                    "SISTEMA",
+                    drone.getEmpresa()
+            );
         }
     }
 
@@ -52,26 +52,37 @@ public class DroneSimuladorScheduler {
             drone.setStatusOperacional(StatusOperacional.RETORNANDO);
             droneRepository.save(drone);
 
+            // Busca apenas as missões EM_ANDAMENTO deste drone
             List<MissaoIntercepcao> missoes = missaoRepository.findByDroneId(drone.getId());
             for (MissaoIntercepcao missao : missoes) {
                 if (missao.getStatusMissao() == StatusMissao.EM_ANDAMENTO) {
-                    DetritoEspacial detritoNeutralizado = missao.getDetrito();
-                    String nomeDetrito = detritoNeutralizado.getNome();
+                    DetritoEspacial detrito = missao.getDetrito();
+                    String nomeDetrito = detrito.getNome();
+                    Empresa empresa = drone.getEmpresa();
 
+                    // 1. Remove a missão primeiro — elimina a FK que aponta pro detrito
                     missaoRepository.delete(missao);
+                    missaoRepository.flush(); // força o DELETE no banco antes do próximo passo
 
-                    detritoRepository.delete(detritoNeutralizado);
+                    // 2. Agora o Oracle aceita deletar o detrito (nenhuma FK aponta mais para ele)
+                    detritoRepository.delete(detrito);
+                    detritoRepository.flush();
 
                     logService.registarAcao(
                             nomeDetrito,
                             "Ameaça neutralizada com sucesso por " + drone.getNome() + ".",
                             "INFO",
-                            drone.getEmpresa()
+                            empresa
                     );
                 }
             }
 
-            logService.registarAcao(drone.getNome(), "Detrito coletado. Drone retornando para a base.", "SISTEMA");
+            logService.registarAcao(
+                    drone.getNome(),
+                    "Detrito coletado. Drone retornando para a base.",
+                    "SISTEMA",
+                    drone.getEmpresa()
+            );
         }
     }
 
@@ -80,7 +91,12 @@ public class DroneSimuladorScheduler {
         for (DroneLimpeza drone : drones) {
             drone.setStatusOperacional(StatusOperacional.NA_BASE);
             droneRepository.save(drone);
-            logService.registarAcao(drone.getNome(), "Drone retornou à base com sucesso.", "SISTEMA");
+            logService.registarAcao(
+                    drone.getNome(),
+                    "Drone retornou à base com sucesso.",
+                    "SISTEMA",
+                    drone.getEmpresa()
+            );
         }
     }
 

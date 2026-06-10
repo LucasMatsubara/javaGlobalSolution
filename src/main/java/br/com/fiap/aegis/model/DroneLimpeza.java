@@ -26,7 +26,7 @@ public class DroneLimpeza {
     @Column(name = "tipo_banda")
     private TipoBanda tipoBanda = TipoBanda.BANDA_KA;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "empresa_id")
     private Empresa empresa;
 }
